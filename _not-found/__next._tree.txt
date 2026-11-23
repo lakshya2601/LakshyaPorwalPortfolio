@@ -1,0 +1,5 @@
+:HL["https://cdn.jsdelivr.net/gh/lakshya2601/LakshyaPorwalPortfolio@preview-v1/_next/static/chunks/0l5jtpr8m3_tw.css","style"]
+:HL["https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap","style"]
+2:[["children",{"s":"__PAGE__","h":160}]]
+1:[["children",{"s":"/_not-found","h":96,"c":"$Q2"}]]
+0:{"b":"TDyMr8DwvrOShwja6UYP1","t":{"t":{"s":"","h":80,"c":"$Q1"}}}
