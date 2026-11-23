@@ -40,7 +40,7 @@ html,body{margin:0;background:#05070d;color:#f4f1ea;font-family:'Space Grotesk',
 <div id="hud"><div class="label">Altitude</div><div class="mono" id="alt">0000 m</div><div class="mono" id="boil">WATER BOILS AT 100.0 °C</div><div id="place">Pangboche, Khumbu</div></div>
 
 <div class="photo" id="ph-camp"><img alt="Tents and lodges at Gorak Shep below Everest" crossorigin="anonymous" src="https://images.unsplash.com/photo-1697746149225-63a33bcb2ea4?w=2400&q=80&auto=format&fit=crop"></div>
-<div class="photo" id="ph-kitchen"><img alt="A camping stove with a steaming pot" crossorigin="anonymous" src="https://images.unsplash.com/photo-1716492596319-0b44dcc17848?w=2400&q=80&auto=format&fit=crop"><canvas id="steam"></canvas></div>
+<div class="photo" id="ph-kitchen"><img alt="A pot steaming on a camping stove below rocky peaks" crossorigin="anonymous" style="object-position:50% 38%" src="https://images.unsplash.com/photo-1775626094623-99a26d94dc64?w=2400&q=80&auto=format&fit=crop"><canvas id="steam"></canvas></div>
 <div class="photo" id="ph-night"><img alt="A tent lit up at night in the mountains" crossorigin="anonymous" src="https://images.unsplash.com/photo-1649519605812-400ba1767985?w=2400&q=80&auto=format&fit=crop"></div>
 <div class="photo" id="ph-flags"><img alt="Prayer flags under snow-capped mountains" crossorigin="anonymous" src="https://images.unsplash.com/photo-1755621089875-946937e8b609?w=2400&q=80&auto=format&fit=crop"></div>
 
@@ -129,7 +129,7 @@ scene.add(stars);
 const voidSphere = new THREE.Mesh(new THREE.SphereGeometry(35000, 32, 16), new THREE.MeshBasicMaterial({ color: '#02030a', side: THREE.BackSide, transparent: true, opacity: 0, fog: false, depthWrite: false }));
 voidSphere.renderOrder = -1; scene.add(voidSphere);
 
-let terrain;
+let terrain, floor; const spaceU = { value: 0 };
 async function build() {
   prog(.02);
   const hdrP = new RGBELoader().loadAsync('https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/kloppenheim_06_puresky_2k.hdr').catch(() => null);
@@ -143,10 +143,14 @@ async function build() {
   const pos = g.attributes.position;
   for (let i = 0; i < pos.count; i++) pos.setY(i, heightAt(pos.getX(i), pos.getZ(i)) / 10);
   g.computeVertexNormals();
-  terrain = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ map: tex, roughness: .96, metalness: 0 }));
+  const tm = new THREE.MeshStandardMaterial({ map: tex, roughness: .96, metalness: 0 });
+  tm.onBeforeCompile = sh => { sh.uniforms.uSpace = spaceU;
+    sh.vertexShader = 'varying vec3 vWp;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWp = (modelMatrix * vec4(transformed,1.)).xyz;');
+    sh.fragmentShader = 'uniform float uSpace; varying vec3 vWp;\n' + sh.fragmentShader.replace('#include <fog_fragment>', '#include <fog_fragment>\nfloat ed = length(vWp.xz) / ' + (WORLD / 2).toFixed(1) + ';\ngl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(.008,.01,.02), uSpace * smoothstep(.55, .98, ed));'); };
+  terrain = new THREE.Mesh(g, tm);
   scene.add(terrain);
   // skirt: endless haze plane beyond the data
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(60000, 60000), new THREE.MeshBasicMaterial({ color: '#5c5a55' }));
+  floor = new THREE.Mesh(new THREE.PlaneGeometry(60000, 60000), new THREE.MeshBasicMaterial({ color: '#8f8f8c' }));
   floor.rotation.x = -Math.PI / 2; floor.position.y = 300; scene.add(floor);
   prog(1, 'Ready');
   const L = document.getElementById('loader'); L.style.opacity = 0; setTimeout(() => L.remove(), 1300);
@@ -154,16 +158,15 @@ async function build() {
 
 /* ── camera route (real places, real altitudes) ── */
 const route = [
-  // [lat, lon, metres above ground or absolute(+abs), lookLat, lookLon, lookAlt, place]
   { p: [27.8540, 86.7880, 4380], t: [27.8617, 86.8614, 6300], name: 'Pangboche, Khumbu' },
-  { p: [27.8505, 86.8020, 4500], t: [27.8617, 86.8614, 6200], name: 'Imja Khola valley' },
-  { p: [27.8480, 86.8230, 4800], t: [27.8617, 86.8614, 6300], name: 'Trail to Ama Dablam Base Camp' },
-  { p: [27.8520, 86.8380, 5100], t: [27.8617, 86.8614, 6500], name: 'Ama Dablam Base Camp' },
-  { p: [27.8520, 86.8490, 5900], t: [27.8617, 86.8614, 6700], name: 'Camp 1 · SW ridge' },
-  { p: [27.8570, 86.8560, 6500], t: [27.8640, 86.8650, 6750], name: 'Camp 2 · Yellow Tower' },
-  { p: [27.8595, 86.8600, 7150], t: [27.8680, 86.8700, 6500], name: 'Summit ridge' },
-  { p: [27.8580, 86.8560, 9500], t: [27.8617, 86.8614, 6000], name: 'Above Ama Dablam' },
-  { p: [27.8400, 86.8400, 30000], t: [27.8617, 86.8614, 0], name: 'Leaving the atmosphere' },
+  { p: [27.8470, 86.8000, 4650], t: [27.8617, 86.8614, 6200], name: 'Imja Khola valley' },
+  { p: [27.8420, 86.8170, 5000], t: [27.8617, 86.8614, 6300], name: 'Trail to Ama Dablam Base Camp' },
+  { p: [27.8400, 86.8300, 5400], t: [27.8617, 86.8614, 6400], name: 'Ama Dablam Base Camp' },
+  { p: [27.8420, 86.8400, 6000], t: [27.8617, 86.8614, 6600], name: 'Camp 1 · SW ridge' },
+  { p: [27.8457, 86.8434, 6700], t: [27.8617, 86.8614, 6750], name: 'Camp 2 · Yellow Tower' },
+  { p: [27.8520, 86.8520, 7600], t: [27.8640, 86.8650, 6700], name: 'Summit ridge · 6,812 m' },
+  { p: [27.8470, 86.8420, 11000], t: [27.8700, 86.8750, 7000], name: 'Above Ama Dablam' },
+  { p: [27.8000, 86.8000, 26000], t: [27.9300, 86.9400, 19000], name: 'Leaving the atmosphere' },
 ];
 const toV = ([lat, lon, alt]) => { const [x, z] = ll2w(lat, lon); return new THREE.Vector3(x, alt / 10, z); };
 const camCurve = new THREE.CatmullRomCurve3(route.map(r => toV(r.p)), false, 'centripetal');
@@ -192,10 +195,10 @@ const sc = document.getElementById('steam'); sc.width = innerWidth; sc.height = 
 const puffs = [...Array(70)].map(() => ({ l: Math.random(), o: Math.random() * 2 - 1, s: .6 + Math.random() * .8 }));
 function drawSteam(dt, on) {
   sx.clearRect(0, 0, sc.width, sc.height); if (!on) return;
-  const ox = sc.width * .56, oy = sc.height * .52;
+  const ox = sc.width * .5, oy = sc.height * .3;
   for (const q of puffs) { q.l += dt * .18 * q.s; if (q.l > 1) { q.l = 0; q.o = Math.random() * 2 - 1; }
     const y = oy - q.l * sc.height * .45, x = ox + q.o * 30 + Math.sin(q.l * 6 + q.o * 4) * 40 * q.l, r = 20 + q.l * 90;
-    const g = sx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(255,255,255,${.16 * (1 - q.l) * Math.min(1, q.l * 6)})`); g.addColorStop(1, 'rgba(255,255,255,0)');
+    const g = sx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(255,255,255,${.08 * (1 - q.l) * Math.min(1, q.l * 6)})`); g.addColorStop(1, 'rgba(255,255,255,0)');
     sx.fillStyle = g; sx.beginPath(); sx.arc(x, y, r, 0, Math.PI * 2); sx.fill(); }
 }
 
@@ -207,14 +210,14 @@ function frame(now) {
   p += (target - p) * .07;
   const f = flyMap(p);
   camCurve.getPoint(f, cp); tgtCurve.getPoint(f, tp);
-  if (terrain) { const g = heightAt(cp.x, cp.z) / 10 + 25; if (cp.y < g) cp.y = g; }
+  if (terrain) { const g = heightAt(cp.x, cp.z) / 10 + 60; if (cp.y < g) cp.y = g; }
   cp.x += mx * 30; cp.y -= my * 15;
   camera.position.lerp(cp, .12); look.lerp(tp, .12); camera.lookAt(look);
   const altM = camera.position.y * 10;
   const spaceK = Math.min(1, Math.max(0, (altM - 9000) / 14000));
   voidSphere.material.opacity = spaceK; stars.material.opacity = Math.max(0, spaceK * 1.2 - .1);
   scene.fog.density = .00042 * (1 - spaceK) + .00002; scene.fog.color.copy(fogDay).lerp(new THREE.Color('#02030a'), spaceK);
-  renderer.toneMappingExposure = .85 - spaceK * .25;
+  renderer.toneMappingExposure = .85 - spaceK * .25; spaceU.value = spaceK; if (floor) floor.visible = spaceK < .05;
   // HUD
   const shownAlt = Math.round(altM);
   document.getElementById('alt').textContent = shownAlt.toLocaleString('en-IN') + ' m';
