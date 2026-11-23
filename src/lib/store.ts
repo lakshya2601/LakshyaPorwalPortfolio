@@ -6,16 +6,14 @@ export const store = {
   section: 0,
   mouse: { x: 0, y: 0 },
   started: false,
+  /** real altitude of the camera in metres, and the place name under it */
+  altitude: 0,
+  place: "Pangboche, Khumbu",
+  /** loading of real terrain, imagery and sky */
+  load: { fraction: 0, label: "Preparing the expedition", ready: false },
 };
 
 export const SECTION_COUNT = 15;
-
-export function timeOfDay(p: number) {
-  if (p < 0.2) return "Golden hour";
-  if (p < 0.47) return "Sunset";
-  if (p < 0.68) return "Night";
-  return "Orbit";
-}
 
 export function isLowPower() {
   if (typeof window === "undefined") return false;

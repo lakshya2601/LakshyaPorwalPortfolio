@@ -35,15 +35,26 @@ export default function Scene() {
     import("@/lib/expedition").then(({ ExpeditionScene }) => {
       if (disposed || !canvasRef.current) return;
       scene = new ExpeditionScene(canvasRef.current, isLowPower());
+      scene
+        .load((fraction, label) => {
+          store.load.fraction = fraction;
+          store.load.label = label;
+        })
+        .catch((e) => console.error("Expedition failed to load", e))
+        .finally(() => {
+          store.load.ready = true;
+          canvasRef.current?.classList.add("ready");
+        });
       const loop = () => {
         const target = readProgress();
-        store.progress += (target - store.progress) * 0.08;
+        store.progress += (target - store.progress) * 0.07;
         store.section = Math.min(SECTION_COUNT - 1, Math.floor(target * SECTION_COUNT));
         scene!.render(store.progress, store.mouse);
+        store.altitude = scene!.altitude;
+        store.place = scene!.place;
         raf = requestAnimationFrame(loop);
       };
       loop();
-      canvasRef.current.classList.add("ready");
     });
 
     window.addEventListener("pointermove", onMouse);

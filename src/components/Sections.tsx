@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { animate, stagger } from "animejs";
 import {
-  sections, profile, stats, recipe, projects, gear, layers, offClock, type Section,
+  sections, profile, stats, recipe, projects, gear, layers, offClock, credits, type Section,
 } from "@/data/content";
 import { prefersReducedMotion } from "@/lib/store";
 
@@ -60,7 +60,7 @@ function Head({ i, camp, title }: { i: number; camp: string; title: string }) {
 function Hero() {
   return (
     <div className="panel hero-panel">
-      <div className="mono label reveal">00 · Base camp · the valley</div>
+      <div className="mono label reveal">00 · Pangboche · 3,985 m</div>
       <h1 className="hero-name split">
         <Letters text={profile.name} />
       </h1>
@@ -396,7 +396,11 @@ function Contact({ s, i }: { s: Extract<Section, { kind: "contact" }>; i: number
         <a className="link mono" href={profile.github} target="_blank" rel="noreferrer">GitHub ↗</a>
         <a className="link mono" href={profile.resume} target="_blank" rel="noreferrer">Resume ↗</a>
       </div>
-      <footer className="mono footer">© {new Date().getFullYear()} {profile.name} · {profile.location}</footer>
+      <footer className="mono footer">
+        © {new Date().getFullYear()} {profile.name} · {profile.location}
+        <br />
+        <span className="credits">{credits}</span>
+      </footer>
     </div>
   );
 }
