@@ -103,11 +103,11 @@ const $ = id => document.getElementById(id);
 /* ───────── content: real modules → portfolio sections ───────── */
 const STOPS = [
   { id:'overview', label:'Station', title:'Station LKP', mod:'International Space Station · 420 km up', body:'I build AI systems and the apps around them — models, APIs and the interfaces people touch. Explore the station: every module is a part of my work.', tags:['AI/ML engineer','Full stack','Indore, India'], fact:'The ISS circles Earth every ~92 minutes at 7.66 km/s — about 16 sunrises a day.', cam:[ -9, 2.6, 11 ], tgt:[0.4,-0.6,0], wide:true },
-  { id:'cupola', label:'About', title:'About me', mod:'Cupola · ESA · 2010', body:'My window on the world: I like problems where AI meets real users, and I like explaining them as much as building them.', tags:['Builder','Teacher','Curious'], fact:'The Cupola has 7 windows — the largest ever flown in space. Astronauts take most Earth photos from here.', cam:[1.15,-1.25,-1.35], tgt:[0.46,-0.76,-0.68], mesh:/^Cupola/ },
+  { id:'cupola', label:'About', title:'About me', mod:'Cupola · ESA · 2010', body:'My window on the world: I like problems where AI meets real users, and I like explaining them as much as building them.', tags:['Builder','Teacher','Curious'], fact:'The Cupola has 7 windows — the largest ever flown in space. Astronauts take most Earth photos from here.', cam:[1.05,-1.05,-1.55], tgt:[0.46,-0.78,-0.68], mesh:/^Cupola/ },
   { id:'destiny', label:'AI lab', title:'LLMs and RAG', mod:'Destiny · US Laboratory · 2001', body:'Retrieval pipelines and AI features that answer from real company data, with evaluation and monitoring in production.', tags:['LangChain','LlamaIndex','RAG','Vector DBs'], fact:'Destiny is NASA\'s primary research lab on the station.', cam:[-0.2,-0.05,1.25], tgt:[-0.21,-0.49,0], mesh:/^USLab/ },
   { id:'columbus', label:'Frontend', title:'Frontend and mobile', mod:'Columbus · ESA laboratory · 2008', body:'Fast, polished web and native apps — component libraries, real-time UIs and a production iOS app.', tags:['React','Next.js','TypeScript','React Native'], fact:'Columbus is Europe\'s largest single contribution to the ISS.', cam:[-1.9,-0.1,1.5], tgt:[-1.1,-0.49,0.54], mesh:/^Columbus001/ },
   { id:'kibo', label:'Backend', title:'Backend and Python', mod:'Kibo · JAXA · 2008', body:'Clean, fast APIs with secure sign-in, background jobs and webhooks.', tags:['Python','FastAPI','Node.js','PostgreSQL'], fact:'Kibo is the largest single module on the ISS, with its own exposed experiment platform.', cam:[-2.1,0.1,-1.9], tgt:[-1.11,-0.5,-0.78], mesh:/^JEM_PM/ },
-  { id:'arrays', label:'MLOps', title:'Cloud and MLOps', mod:'Solar arrays · 120 kW', body:'Containers, CI/CD and model deployment — the power system that keeps everything running.', tags:['Docker','CI/CD','MLOps','Monitoring'], fact:'The ISS solar arrays cover about half an acre and generate up to 120 kW.', cam:[-5.5,1.6,-7.5], tgt:[-1.9,-0.07,-4.9], mesh:/Array/ },
+  { id:'arrays', label:'MLOps', title:'Cloud and MLOps', mod:'Solar arrays · 120 kW', body:'Containers, CI/CD and model deployment — the power system that keeps everything running.', tags:['Docker','CI/CD','MLOps','Monitoring'], fact:'The ISS solar arrays cover about half an acre and generate up to 120 kW.', cam:[-4.6,1.3,-1.6], tgt:[-1.9,-0.07,-4.9], mesh:/Array/ },
   { id:'canadarm', label:'Integrations', title:'Integrations', mod:'Canadarm2 · CSA · 2001', body:'Payments, maps, live tracking and third-party APIs, grabbed and wired in cleanly.', tags:['REST','Webhooks','Realtime'], fact:'Canadarm2 is 17.6 m long and can move end-over-end around the station like an inchworm.', cam:[-0.1,-1.6,1.2], tgt:[-0.77,-0.79,-0.05], mesh:/^SSRMS/ },
   { id:'harmony', label:'How I work', title:'How I work', mod:'Harmony · Node 2 · 2007', body:'Ask early. Plan first. Own it end to end. Lift the team — Harmony connects the labs, and that\'s my job too.', tags:['Ask early','Plan first','Own it','Lift the team'], fact:'Harmony links Destiny, Columbus and Kibo, and hosts the forward docking port.', cam:[-1.6,0.6,0.9], tgt:[-0.99,-0.51,0.01], mesh:/^Node2/ },
   { id:'zarya', label:'Experience', title:'Experience', mod:'Zarya · first module · 1998', body:'Leezova Technologies — AI/ML engineer · Ctruh — component library, live reservations · Cansvolution — React Native AI support app, iOS app · B.Tech CSE, SVVV Indore, 2023.', tags:['Leezova','Ctruh','Cansvolution'], fact:'Zarya launched on 20 November 1998 — where the whole station began.', cam:[2.4,0.3,1.6], tgt:[1.65,-0.42,0], mesh:/^Zarya/ },
@@ -152,7 +152,8 @@ const earthMat = new THREE.ShaderMaterial({ uniforms: earthU,
     vec3 day=texture2D(dayMap,vUv).rgb; vec3 night=texture2D(nightMap,vUv).rgb; float clouds=texture2D(bcMap,vUv).b; float water=texture2D(specMap,vUv).r;
     float dayK=smoothstep(-.12,.18,d);
     vec3 col=day*(max(d,0.)*1.25+.03);
-    col=mix(col, vec3(1.), clouds*.85*smoothstep(-.1,.3,d));
+    float cl=smoothstep(.25,.85,clouds);
+    col=mix(col, vec3(.95)*(max(d,0.)*1.1+.03), cl*.75);
     vec3 h=normalize(sunDir+v); float spec=pow(max(dot(n,h),0.),60.)*water*(1.-clouds)*dayK;
     col+=vec3(1.,.93,.8)*spec*1.4;
     col=mix(night*vec3(1.,.82,.55)*2.2*(1.-clouds*.7), col, dayK);
@@ -173,7 +174,7 @@ const sunSprite = (() => { const c = document.createElement('canvas'); c.width =
 
 /* station lighting: real sun + earthshine */
 const sunLight = new THREE.DirectionalLight('#fff6ea', 3.2); issScene.add(sunLight, sunLight.target);
-const earthshine = new THREE.HemisphereLight('#0b1020', '#4d79b8', .55); issScene.add(earthshine);
+const earthshine = new THREE.HemisphereLight('#0b1020', '#7ea3d6', 1.25); issScene.add(earthshine);
 issScene.add(new THREE.AmbientLight('#ffffff', .06));
 
 /* ───────── live orbit (CelesTrak TLE → satellite.js) and real sun position ───────── */
@@ -289,7 +290,7 @@ $('dockBtn').addEventListener('click', () => {
   gsap.to(st, { x: -2.25, duration: 7, ease: 'power2.inOut', onUpdate: () => {
     camPos.set(st.x, -0.569, 0.01); camTarget.set(-1.6, -0.569, 0.01);
     const now = performance.now(), rate = (last - st.x) * 10 / Math.max(.001, (now - lt) / 1000); last = st.x; lt = now;
-    $('d-range').textContent = ((Math.abs(st.x + 1.66)) * 10).toFixed(1) + ' m'; $('d-rate').textContent = Math.abs(rate).toFixed(2) + ' m/s'; },
+    const rng = Math.abs(st.x + 1.66) * 10; $('d-range').textContent = rng.toFixed(1) + ' m'; $('d-rate').textContent = (0.03 + rng * 0.0009).toFixed(2) + ' m/s'; },
     onComplete: () => { $('status').textContent = 'SOFT CAPTURE · HARD CAPTURE CONFIRMED'; $('d-rate').textContent = '0.00 m/s';
       setTimeout(() => { document.querySelector('#dock').classList.add('hide'); ['patch', 'tele', 'panel', 'timeline', 'hint', 'credit'].forEach(id => $(id).classList.remove('hide')); docked = true; goTo(0, 4.5); }, 900); } });
 });
