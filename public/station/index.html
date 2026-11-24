@@ -448,11 +448,11 @@ function enterCupola() {
   saved = { p: camPos.clone(), t: camTarget.clone() };
   drawCupola(); document.body.classList.add('incupola'); $('cupola').classList.add('on'); setCupolaMode('footage');
   gsap.fromTo('#cupSvg', { scale: 1.6, opacity: 0, transformOrigin: '50% 50%' }, { scale: 1, opacity: 1, duration: 1.4, ease: 'power3.out' });
-  gsap.fromTo('#cupVid', { opacity: 0 }, { opacity: 1, duration: 1.6, delay: .3 });
 }
 function setCupolaMode(m) {
   cupola = m; $('cupola').classList.toggle('live', m === 'live'); $('cupFoot').classList.toggle('on', m === 'footage'); $('cupLive').classList.toggle('on', m === 'live');
   const v = $('cupVid');
+  gsap.to(v, { opacity: m === 'footage' ? 1 : 0, duration: .6, overwrite: 'auto' });
   if (m === 'footage') { if (v.preload === 'none') { v.preload = 'auto'; v.currentTime = 25; } v.play().catch(() => {}); station.visible = true;
     $('cupTitle').textContent = 'Astronaut footage'; $('cupSub').textContent = 'Time-lapse shot by ISS crews — city lights, aurora, airglow and sunrise. Video: NASA, public domain.'; }
   else { v.pause(); station.visible = false;
