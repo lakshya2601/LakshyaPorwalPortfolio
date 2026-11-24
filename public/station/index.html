@@ -453,13 +453,13 @@ function setCupolaMode(m) {
   cupola = m; $('cupola').classList.toggle('live', m === 'live'); $('cupFoot').classList.toggle('on', m === 'footage'); $('cupLive').classList.toggle('on', m === 'live');
   const v = $('cupVid');
   gsap.to(v, { opacity: m === 'footage' ? 1 : 0, duration: .6, overwrite: 'auto' });
-  if (m === 'footage') { if (v.preload === 'none') { v.preload = 'auto'; v.currentTime = 25; } v.play().catch(() => {}); station.visible = true;
+  if (m === 'footage') { cinematic = true; if (v.preload === 'none') { v.preload = 'auto'; v.currentTime = 25; } v.play().catch(() => {}); station.visible = true;
     $('cupTitle').textContent = 'Astronaut footage'; $('cupSub').textContent = 'Time-lapse shot by ISS crews — city lights, aurora, airglow and sunrise. Video: NASA, public domain.'; }
-  else { v.pause(); station.visible = false;
+  else { v.pause(); station.visible = false; cinematic = false; updateOrbit(new Date());
     $('cupTitle').textContent = 'Live now'; $('cupSub').textContent = `What the Cupola is facing right now: ${Math.abs(tele.lat).toFixed(1)}°${tele.lat >= 0 ? 'N' : 'S'}, ${Math.abs(tele.lon).toFixed(1)}°${tele.lon >= 0 ? 'E' : 'W'}, ${tele.sunlit ? 'in daylight' : 'on the night side'}. Live orbit from CelesTrak.`; }
 }
 function exitCupola() {
-  if (!cupola) return; cupola = null; station.visible = true; $('cupVid').pause(); document.body.classList.remove('incupola');
+  if (!cupola) return; cupola = null; cinematic = true; station.visible = true; $('cupVid').pause(); document.body.classList.remove('incupola');
   gsap.to('#cupola', { opacity: 0, duration: .6, onComplete: () => { $('cupola').classList.remove('on', 'live'); $('cupola').style.opacity = ''; } });
   if (saved) { camPos.copy(saved.p); camTarget.copy(saved.t); }
 }
