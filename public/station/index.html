@@ -270,6 +270,17 @@ function updateOrbit(now) {
   sunDir.copy(cinematic ? CINE_SUN : real);
 }
 const CINE_SUN = new THREE.Vector3(-.55, .5, .67).normalize();
+function sunlitAt(date) {          // is the ISS in sunlight at this moment? (same test as the scene)
+  const pv = satellite.propagate(satrec, date); if (!pv.position) return true;
+  const g = satellite.eciToGeodetic(pv.position, satellite.gstime(date));
+  const p = llToLocal(satellite.degreesLat(g.latitude), satellite.degreesLong(g.longitude)); const [a, b] = subSolar(date);
+  return p.dot(llToLocal(a, b)) > -0.33;
+}
+function nextSunEvent() {          // minutes until the next sunrise / sunset on board
+  if (!satrec) return null; const now = Date.now(), lit = sunlitAt(new Date(now));
+  for (let m = 1; m <= 100; m++) if (sunlitAt(new Date(now + m * 60000)) !== lit) return { lit, mins: m };
+  return null;
+}
 let cinematic = true;
 
 /* ───────── station model ───────── */
@@ -456,7 +467,9 @@ function setCupolaMode(m) {
   if (m === 'footage') { cinematic = true; if (v.preload === 'none') { v.preload = 'auto'; v.currentTime = 25; } v.play().catch(() => {}); station.visible = true;
     $('cupTitle').textContent = 'Astronaut footage'; $('cupSub').textContent = 'Time-lapse shot by ISS crews — city lights, aurora, airglow and sunrise. Video: NASA, public domain.'; }
   else { v.pause(); station.visible = false; cinematic = false; updateOrbit(new Date());
-    $('cupTitle').textContent = 'Live now'; $('cupSub').textContent = `What the Cupola is facing right now: ${Math.abs(tele.lat).toFixed(1)}°${tele.lat >= 0 ? 'N' : 'S'}, ${Math.abs(tele.lon).toFixed(1)}°${tele.lon >= 0 ? 'E' : 'W'}, ${tele.sunlit ? 'in daylight' : 'on the night side'}. Live orbit from CelesTrak.`; }
+    $('cupTitle').textContent = 'Live now'; const ev = nextSunEvent(), where = `${Math.abs(tele.lat).toFixed(1)}°${tele.lat >= 0 ? 'N' : 'S'}, ${Math.abs(tele.lon).toFixed(1)}°${tele.lon >= 0 ? 'E' : 'W'}`;
+    $('cupTitle').textContent = ev ? (ev.lit ? `Live now · sunset in ${ev.mins} min` : `Live now · night side · sunrise in ${ev.mins} min`) : 'Live now';
+    $('cupSub').textContent = `Looking straight down at ${where}, exactly where the ISS is right now${ev && !ev.lit ? ' — in Earth\'s shadow, so only city lights show' : ''}. Live orbit from CelesTrak.`; }
 }
 function exitCupola() {
   if (!cupola) return; cupola = null; cinematic = true; station.visible = true; $('cupVid').pause(); document.body.classList.remove('incupola');
