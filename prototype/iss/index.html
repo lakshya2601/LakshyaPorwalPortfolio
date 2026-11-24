@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lakshya Porwal — Station LKP</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#eef2f8;font-family:'Space Grotesk',system-ui,sans-serif}
+canvas{display:block;position:fixed;inset:0;width:100vw;height:100vh}
+.mono{font-family:'JetBrains Mono',monospace}.lbl{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:#7fd4ff}
+.glass{background:rgba(4,8,16,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(127,212,255,.18);border-radius:12px}
+#patch{position:fixed;top:18px;left:20px;z-index:10;display:flex;align-items:center;gap:12px;padding:10px 14px}
+#patch svg{width:38px;height:38px}
+#tele{position:fixed;top:18px;right:20px;z-index:10;padding:12px 14px;min-width:250px}
+#tele .row{display:flex;justify-content:space-between;gap:18px;font-size:11.5px;margin-top:5px}#tele .row span:last-child{color:#fff}
+#live{display:inline-flex;align-items:center;gap:6px}#live i{width:7px;height:7px;border-radius:50%;background:#ff4d4d;box-shadow:0 0 8px #ff4d4d;animation:bl 1.4s infinite}@keyframes bl{50%{opacity:.25}}
+#panel{position:fixed;left:24px;top:50%;transform:translateY(-50%);z-index:10;width:min(400px,calc(100vw - 48px));padding:22px 24px}
+#panel h2{font-size:34px;font-weight:500;line-height:1.05;margin:8px 0 6px}
+#panel .mod{font-size:12px;color:#a9b6cc;margin-bottom:12px}#panel p{font-size:15px;line-height:1.6;color:#dfe5f0;margin:0}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.tags span{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 10px;border:1px solid rgba(255,138,61,.55);color:#ffc9a3;border-radius:999px}
+.fact{margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.1);font-size:12px;color:#9fb3cc;line-height:1.5}
+#timeline{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:10;display:flex;align-items:center;gap:4px;padding:8px 10px;max-width:calc(100vw - 40px);overflow-x:auto}
+#timeline button{background:none;border:0;color:#9fb3cc;font:inherit;font-size:12px;padding:7px 10px;border-radius:8px;cursor:pointer;white-space:nowrap}
+#timeline button.on{background:rgba(127,212,255,.14);color:#fff}#timeline button:hover{color:#fff}
+#timeline .nav{font-size:16px;padding:6px 10px}
+#hint{position:fixed;bottom:74px;left:50%;transform:translateX(-50%);z-index:10;font-size:11px;color:#9fb3cc;letter-spacing:.12em}
+#tip{position:fixed;z-index:20;pointer-events:none;padding:6px 10px;font-size:12px;opacity:0;transition:opacity .15s}
+/* docking intro */
+#dock{position:fixed;inset:0;z-index:30;pointer-events:none}
+#dock .cross{position:absolute;left:50%;top:50%;width:220px;height:220px;transform:translate(-50%,-50%);border:1px solid rgba(127,255,170,.55);border-radius:50%}
+#dock .cross::before,#dock .cross::after{content:"";position:absolute;background:rgba(127,255,170,.55)}
+#dock .cross::before{left:50%;top:-30px;bottom:-30px;width:1px}#dock .cross::after{top:50%;left:-30px;right:-30px;height:1px}
+#dock .hud{position:absolute;left:50%;top:calc(50% + 150px);transform:translateX(-50%);display:flex;gap:34px;font-size:12px;color:#7fffaa;text-align:center}
+#dock .hud b{display:block;font-size:22px;font-weight:500;color:#fff;margin-top:4px}
+#dock .title{position:absolute;left:50%;top:14%;transform:translateX(-50%);text-align:center}
+#dock .title h1{font-size:clamp(44px,7vw,88px);font-weight:500;margin:8px 0 6px;letter-spacing:.02em}
+#dock .title p{margin:0;color:#b9c6da}
+#dockBtn{pointer-events:auto;position:absolute;left:50%;bottom:12%;transform:translateX(-50%);background:#ff8a3d;color:#1b0b02;border:0;border-radius:999px;padding:14px 30px;font:600 15px 'Space Grotesk';cursor:pointer;letter-spacing:.04em}
+#dockBtn:disabled{background:#3a4152;color:#9fb3cc;cursor:progress}
+#status{position:absolute;left:50%;bottom:calc(12% + 62px);transform:translateX(-50%);font-size:11px;color:#9fb3cc;letter-spacing:.14em}
+#credit{position:fixed;right:20px;top:196px;z-index:9;font-size:9.5px;color:rgba(255,255,255,.4);text-align:right;max-width:280px}
+.hide{opacity:0;pointer-events:none!important;transition:opacity .8s}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="patch" class="glass hide">
+  <svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18.5" fill="#0a1426" stroke="#ff8a3d" stroke-width="1.5"/><ellipse cx="20" cy="20" rx="15" ry="5.5" fill="none" stroke="#7fd4ff" stroke-width="1" transform="rotate(-25 20 20)"/><circle cx="20" cy="20" r="5" fill="#2f6fd6"/><path d="M8 20h24M20 8v24" stroke="#fff" stroke-width=".6" opacity=".5"/></svg>
+  <div><div class="lbl">Mission · LKP-01</div><div style="font-weight:600;letter-spacing:.2em;font-size:14px;margin-top:2px">LAKSHYA PORWAL</div></div>
+</div>
+
+<div id="tele" class="glass mono hide">
+  <div class="lbl" style="display:flex;justify-content:space-between"><span>ISS · Telemetry</span><span id="live"><i></i>LIVE</span></div>
+  <div class="row"><span>UTC</span><span id="t-utc">--</span></div>
+  <div class="row"><span>LAT / LON</span><span id="t-ll">--</span></div>
+  <div class="row"><span>ALTITUDE</span><span id="t-alt">--</span></div>
+  <div class="row"><span>VELOCITY</span><span id="t-vel">--</span></div>
+  <div class="row"><span>SUNLIGHT</span><span id="t-sun">--</span></div>
+  <div class="row"><span>DATA</span><span id="t-src" style="color:#9fb3cc!important">CelesTrak TLE</span></div>
+</div>
+
+<div id="panel" class="glass hide">
+  <div class="lbl" id="p-lbl"></div>
+  <h2 id="p-title"></h2>
+  <div class="mod mono" id="p-mod"></div>
+  <p id="p-body"></p>
+  <div class="tags" id="p-tags"></div>
+  <div class="fact" id="p-fact"></div>
+</div>
+
+<div id="timeline" class="glass hide"></div>
+<div id="hint" class="mono hide">CLICK A MODULE · SCROLL OR ← → TO TRAVEL · DRAG TO LOOK</div>
+<div id="tip" class="glass mono"></div>
+<div id="credit" class="mono hide">ISS model: NASA JSC IGOAL · Earth: NASA Blue Marble / Black Marble via three.js · Orbit: CelesTrak</div>
+
+<div id="dock">
+  <div class="title"><div class="lbl">Approach · International Space Station</div><h1>LAKSHYA</h1><p>AI/ML engineer · Full stack developer</p></div>
+  <div class="cross"></div>
+  <div class="hud mono"><div>RANGE<b id="d-range">— m</b></div><div>RATE<b id="d-rate">— m/s</b></div><div>ROLL<b id="d-roll">0.0°</b></div></div>
+  <div id="status" class="mono">LOADING STATION MODEL…</div>
+  <button id="dockBtn" disabled>Loading…</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/satellite.js@5/dist/satellite.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const MODEL = window.ISS_MODEL_URL || 'iss_main.glb';
+const TEX = 'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r170/examples/textures/planets/';
+const R_E = 6371, KM = 0.01;            // ISS scene: 1 unit = 10 m. Earth scene: 1 unit = 1 km.
+const $ = id => document.getElementById(id);
+
+/* ───────── content: real modules → portfolio sections ───────── */
+const STOPS = [
+  { id:'overview', label:'Station', title:'Station LKP', mod:'International Space Station · 420 km up', body:'I build AI systems and the apps around them — models, APIs and the interfaces people touch. Explore the station: every module is a part of my work.', tags:['AI/ML engineer','Full stack','Indore, India'], fact:'The ISS circles Earth every ~92 minutes at 7.66 km/s — about 16 sunrises a day.', cam:[ -9, 2.6, 11 ], tgt:[0.4,-0.6,0], wide:true },
+  { id:'cupola', label:'About', title:'About me', mod:'Cupola · ESA · 2010', body:'My window on the world: I like problems where AI meets real users, and I like explaining them as much as building them.', tags:['Builder','Teacher','Curious'], fact:'The Cupola has 7 windows — the largest ever flown in space. Astronauts take most Earth photos from here.', cam:[1.15,-1.25,-1.35], tgt:[0.46,-0.76,-0.68], mesh:/^Cupola/ },
+  { id:'destiny', label:'AI lab', title:'LLMs and RAG', mod:'Destiny · US Laboratory · 2001', body:'Retrieval pipelines and AI features that answer from real company data, with evaluation and monitoring in production.', tags:['LangChain','LlamaIndex','RAG','Vector DBs'], fact:'Destiny is NASA\'s primary research lab on the station.', cam:[-0.2,-0.05,1.25], tgt:[-0.21,-0.49,0], mesh:/^USLab/ },
+  { id:'columbus', label:'Frontend', title:'Frontend and mobile', mod:'Columbus · ESA laboratory · 2008', body:'Fast, polished web and native apps — component libraries, real-time UIs and a production iOS app.', tags:['React','Next.js','TypeScript','React Native'], fact:'Columbus is Europe\'s largest single contribution to the ISS.', cam:[-1.9,-0.1,1.5], tgt:[-1.1,-0.49,0.54], mesh:/^Columbus001/ },
+  { id:'kibo', label:'Backend', title:'Backend and Python', mod:'Kibo · JAXA · 2008', body:'Clean, fast APIs with secure sign-in, background jobs and webhooks.', tags:['Python','FastAPI','Node.js','PostgreSQL'], fact:'Kibo is the largest single module on the ISS, with its own exposed experiment platform.', cam:[-2.1,0.1,-1.9], tgt:[-1.11,-0.5,-0.78], mesh:/^JEM_PM/ },
+  { id:'arrays', label:'MLOps', title:'Cloud and MLOps', mod:'Solar arrays · 120 kW', body:'Containers, CI/CD and model deployment — the power system that keeps everything running.', tags:['Docker','CI/CD','MLOps','Monitoring'], fact:'The ISS solar arrays cover about half an acre and generate up to 120 kW.', cam:[-5.5,1.6,-7.5], tgt:[-1.9,-0.07,-4.9], mesh:/Array/ },
+  { id:'canadarm', label:'Integrations', title:'Integrations', mod:'Canadarm2 · CSA · 2001', body:'Payments, maps, live tracking and third-party APIs, grabbed and wired in cleanly.', tags:['REST','Webhooks','Realtime'], fact:'Canadarm2 is 17.6 m long and can move end-over-end around the station like an inchworm.', cam:[-0.1,-1.6,1.2], tgt:[-0.77,-0.79,-0.05], mesh:/^SSRMS/ },
+  { id:'harmony', label:'How I work', title:'How I work', mod:'Harmony · Node 2 · 2007', body:'Ask early. Plan first. Own it end to end. Lift the team — Harmony connects the labs, and that\'s my job too.', tags:['Ask early','Plan first','Own it','Lift the team'], fact:'Harmony links Destiny, Columbus and Kibo, and hosts the forward docking port.', cam:[-1.6,0.6,0.9], tgt:[-0.99,-0.51,0.01], mesh:/^Node2/ },
+  { id:'zarya', label:'Experience', title:'Experience', mod:'Zarya · first module · 1998', body:'Leezova Technologies — AI/ML engineer · Ctruh — component library, live reservations · Cansvolution — React Native AI support app, iOS app · B.Tech CSE, SVVV Indore, 2023.', tags:['Leezova','Ctruh','Cansvolution'], fact:'Zarya launched on 20 November 1998 — where the whole station began.', cam:[2.4,0.3,1.6], tgt:[1.65,-0.42,0], mesh:/^Zarya/ },
+  { id:'beam', label:'Projects', title:'Experiments on board', mod:'BEAM · inflatable module · 2016', body:'Hotel management platform · Taxi dispatch system · Face-recognition HR system — each one an experiment that made it to production.', tags:['Python','FastAPI','React Native','Computer vision'], fact:'BEAM was meant to be a 2-year test. It worked so well it stayed.', cam:[1.35,-0.55,-1.4], tgt:[0.86,-0.49,-0.68], mesh:/^BEAM/ },
+  { id:'zvezda', label:'Off duty', title:'Off the clock', mod:'Zvezda · service module · 2000', body:'Cooking for friends, treks and night skies. Zvezda has the galley — every station needs a kitchen.', tags:['Cooking','Trekking','Space'], fact:'Zvezda provides living quarters, life support and the galley for the crew.', cam:[3.9,0.7,2.4], tgt:[2.96,-0.43,0], mesh:/^Zvezda/ },
+  { id:'dock', label:'Contact', title:'Dock with me', mod:'IDA-2 · docking adapter', body:'Open a channel — hiring, freelance or collaboration. I usually reply within a day.', tags:['Email','LinkedIn','GitHub','Resume'], fact:'Crew Dragon and Starliner dock to the station here, at the forward end of Harmony.', cam:[-3.2,-0.3,0.55], tgt:[-1.6,-0.57,0.01], mesh:/^IDA2/ },
+];
+
+/* ───────── renderer, two scenes (Earth in km, station in 10 m units) ───────── */
+const canvas = $('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+
+const earthScene = new THREE.Scene(), issScene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.01, 400);
+const earthCam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 1, 600000);
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(earthScene, earthCam));
+const issPass = new RenderPass(issScene, cam); issPass.clear = false; issPass.clearDepth = true; composer.addPass(issPass);
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.35, 0.6, 0.85); composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+/* stars */
+{ const p = []; for (let i = 0; i < 9000; i++) { const u = Math.random() * 2 * Math.PI, v = Math.acos(2 * Math.random() - 1), r = 400000; p.push(r * Math.sin(v) * Math.cos(u), r * Math.cos(v), r * Math.sin(v) * Math.sin(u)); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+  earthScene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: '#dfe6ff', size: 1.3, sizeAttenuation: false, transparent: true, opacity: .8 }))); }
+
+/* Earth with day/night, city lights, clouds, ocean glint and atmosphere */
+const tl = new THREE.TextureLoader(); tl.setCrossOrigin('anonymous');
+const loadTex = (f, srgb = true) => new Promise(res => tl.load(TEX + f, t => { if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; res(t); }, undefined, () => res(null)));
+const sunDir = new THREE.Vector3(1, .4, -.6).normalize();
+const earth = new THREE.Group(); earthScene.add(earth);
+const earthU = { dayMap: { value: null }, nightMap: { value: null }, specMap: { value: null }, bcMap: { value: null }, sunDir: { value: sunDir }, camPos: { value: new THREE.Vector3() } };
+const earthMat = new THREE.ShaderMaterial({ uniforms: earthU,
+  vertexShader: `varying vec2 vUv; varying vec3 vN; varying vec3 vW; void main(){ vUv=uv; vN=normalize(mat3(modelMatrix)*normal); vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
+  fragmentShader: `uniform sampler2D dayMap,nightMap,specMap,bcMap; uniform vec3 sunDir,camPos; varying vec2 vUv; varying vec3 vN; varying vec3 vW;
+  void main(){ vec3 n=normalize(vN); vec3 v=normalize(camPos-vW); float d=dot(n,sunDir);
+    vec3 day=texture2D(dayMap,vUv).rgb; vec3 night=texture2D(nightMap,vUv).rgb; float clouds=texture2D(bcMap,vUv).b; float water=texture2D(specMap,vUv).r;
+    float dayK=smoothstep(-.12,.18,d);
+    vec3 col=day*(max(d,0.)*1.25+.03);
+    col=mix(col, vec3(1.), clouds*.85*smoothstep(-.1,.3,d));
+    vec3 h=normalize(sunDir+v); float spec=pow(max(dot(n,h),0.),60.)*water*(1.-clouds)*dayK;
+    col+=vec3(1.,.93,.8)*spec*1.4;
+    col=mix(night*vec3(1.,.82,.55)*2.2*(1.-clouds*.7), col, dayK);
+    float fr=pow(1.-max(dot(n,v),0.),3.5); col+=vec3(.35,.6,1.)*fr*(smoothstep(-.3,.4,d))*1.1;
+    float tw=smoothstep(-.15,.05,d)*(1.-smoothstep(.05,.3,d)); col+=vec3(1.,.45,.15)*tw*fr*.8;
+    gl_FragColor=vec4(col,1.); }` });
+const earthMesh = new THREE.Mesh(new THREE.SphereGeometry(R_E, 256, 128), earthMat); earth.add(earthMesh);
+const atmo = new THREE.Mesh(new THREE.SphereGeometry(R_E * 1.018, 128, 64), new THREE.ShaderMaterial({ uniforms: { sunDir: earthU.sunDir }, side: THREE.BackSide, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  vertexShader: `varying vec3 vN; varying vec3 vW; void main(){ vN=normalize(mat3(modelMatrix)*normal); vec4 w=modelMatrix*vec4(position,1.); vW=w.xyz; gl_Position=projectionMatrix*viewMatrix*w; }`,
+  fragmentShader: `uniform vec3 sunDir; varying vec3 vN; varying vec3 vW; void main(){ vec3 n=normalize(vN); vec3 v=normalize(cameraPosition-vW); float rim=pow(1.-abs(dot(n,v)),2.2); float lit=smoothstep(-.35,.35,dot(-n,sunDir)*-1.); gl_FragColor=vec4(vec3(.3,.6,1.)*rim*lit*1.6, rim*lit); }` }));
+earth.add(atmo);
+Promise.all([loadTex('earth_day_4096.jpg'), loadTex('earth_night_4096.jpg'), loadTex('earth_specular_2048.jpg', false), loadTex('earth_bump_roughness_clouds_4096.jpg', false)]).then(([d, n, s, b]) => { earthU.dayMap.value = d; earthU.nightMap.value = n; earthU.specMap.value = s; earthU.bcMap.value = b; });
+
+/* sun disc in the Earth scene */
+const sunSprite = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'); const g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+  g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.08, 'rgba(255,248,230,1)'); g.addColorStop(.2, 'rgba(255,220,170,.35)'); g.addColorStop(1, 'rgba(255,200,150,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthWrite: false, blending: THREE.AdditiveBlending })); s.scale.setScalar(60000); earthScene.add(s); return s; })();
+
+/* station lighting: real sun + earthshine */
+const sunLight = new THREE.DirectionalLight('#fff6ea', 3.2); issScene.add(sunLight, sunLight.target);
+const earthshine = new THREE.HemisphereLight('#0b1020', '#4d79b8', .55); issScene.add(earthshine);
+issScene.add(new THREE.AmbientLight('#ffffff', .06));
+
+/* ───────── live orbit (CelesTrak TLE → satellite.js) and real sun position ───────── */
+let satrec = null, liveOK = false;
+const FALLBACK_TLE = ['1 25544U 98067A   26327.91294507  .00010000  00000+0  18000-3 0  9990', '2 25544  51.6390 200.0000 0004000 100.0000 260.0000 15.50000000400000'];
+async function loadTLE() {
+  try { const t = (await (await fetch('https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=TLE')).text()).trim().split(/\r?\n/);
+    satrec = satellite.twoline2satrec(t[1].trim(), t[2].trim()); liveOK = true; }
+  catch (e) { satrec = satellite.twoline2satrec(...FALLBACK_TLE); $('t-src').textContent = 'Offline TLE'; }
+}
+function subSolar(date) {          // low-precision solar position → subsolar lat/lon (degrees)
+  const d = (date - Date.UTC(2000, 0, 1, 12)) / 864e5, g = (357.529 + .98560028 * d) * Math.PI / 180, q = 280.459 + .98564736 * d;
+  const L = (q + 1.915 * Math.sin(g) + .02 * Math.sin(2 * g)) * Math.PI / 180, e = (23.439 - 3.6e-7 * d) * Math.PI / 180;
+  const dec = Math.asin(Math.sin(e) * Math.sin(L)), ra = Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L));
+  const gmst = satellite.gstime(date); let lon = (ra - gmst) * 180 / Math.PI; lon = ((lon + 540) % 360) - 180;
+  return [dec * 180 / Math.PI, lon];
+}
+const llToLocal = (lat, lon) => { const u = (lon + 180) / 360 * 2 * Math.PI, th = (90 - lat) / 180 * Math.PI; return new THREE.Vector3(-Math.cos(u) * Math.sin(th), Math.cos(th), Math.sin(u) * Math.sin(th)); };
+const tele = { lat: 0, lon: 0, alt: 420, vel: 7.66, sunlit: true };
+const qA = new THREE.Quaternion(), qB = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+function updateOrbit(now) {
+  if (!satrec) return;
+  const pv = satellite.propagate(satrec, now), pv2 = satellite.propagate(satrec, new Date(+now + 20000));
+  if (!pv.position) return;
+  const gmst = satellite.gstime(now), g1 = satellite.eciToGeodetic(pv.position, gmst), g2 = satellite.eciToGeodetic(pv2.position, satellite.gstime(new Date(+now + 20000)));
+  tele.lat = satellite.degreesLat(g1.latitude); tele.lon = satellite.degreesLong(g1.longitude); tele.alt = g1.height;
+  const v = pv.velocity; tele.vel = Math.hypot(v.x, v.y, v.z);
+  // rotate the Earth so the ISS sub-point is straight below, and the ground track runs along the station's -X (forward) axis
+  const p1 = llToLocal(tele.lat, tele.lon), p2 = llToLocal(satellite.degreesLat(g2.latitude), satellite.degreesLong(g2.longitude));
+  qA.setFromUnitVectors(p1, up);
+  const fwd = p2.clone().applyQuaternion(qA); fwd.y = 0; fwd.normalize();
+  const ang = Math.atan2(fwd.z, fwd.x) - Math.atan2(0, -1);
+  qB.setFromAxisAngle(up, ang);
+  earth.quaternion.copy(qB).multiply(qA);
+  earth.position.set(0, -(R_E + tele.alt), 0);
+  const [sLat, sLon] = subSolar(now);
+  const real = llToLocal(sLat, sLon).applyQuaternion(earth.quaternion);
+  tele.sunlit = real.y > -0.33;   // simple shadow test
+  sunDir.copy(cinematic ? CINE_SUN : real);
+}
+const CINE_SUN = new THREE.Vector3(-.55, .5, .67).normalize();
+let cinematic = true;
+
+/* ───────── station model ───────── */
+const station = new THREE.Group(); issScene.add(station);
+const pickables = [];
+const loader = new GLTFLoader(); loader.setMeshoptDecoder(MeshoptDecoder);
+loader.load(MODEL, gltf => {
+  station.add(gltf.scene);
+  gltf.scene.traverse(o => { if (o.isMesh) { o.material.envMapIntensity = .4; pickables.push(o); } });
+  $('status').textContent = liveOK ? 'TARGET ACQUIRED · LIVE ORBIT LOCKED' : 'TARGET ACQUIRED';
+  $('dockBtn').disabled = false; $('dockBtn').textContent = 'Begin docking';
+}, e => { if (e.total) $('status').textContent = `LOADING STATION MODEL · ${Math.round(e.loaded / e.total * 100)}%`; },
+  () => { $('status').textContent = 'COULD NOT LOAD STATION MODEL'; });
+
+/* ───────── camera director ───────── */
+const camTarget = new THREE.Vector3(-1.6, -0.57, 0.01), camPos = new THREE.Vector3(-60, -0.5, 0.01);
+cam.position.copy(camPos); cam.lookAt(camTarget);
+const orbit = { yaw: 0, pitch: 0, dist: 1, dyaw: 0, dpitch: 0 };
+let stop = -1, docked = false, tween = null, idle = 0;
+function goTo(i, dur = 3.2) {
+  i = (i + STOPS.length) % STOPS.length; stop = i; const s = STOPS[i];
+  tween?.kill(); orbit.dyaw = orbit.dpitch = 0;
+  const from = { p: camPos.clone(), t: camTarget.clone() }, to = { p: new THREE.Vector3(...s.cam), t: new THREE.Vector3(...s.tgt) };
+  const mid = from.p.clone().lerp(to.p, .5).add(new THREE.Vector3(0, from.p.distanceTo(to.p) * .25, 0));   // arc, never cut through the station
+  const st = { k: 0 };
+  tween = gsap.to(st, { k: 1, duration: dur, ease: 'power3.inOut', onUpdate: () => { const k = st.k;
+    const a = from.p.clone().lerp(mid, k), b = mid.clone().lerp(to.p, k); camPos.copy(a.lerp(b, k)); camTarget.copy(from.t).lerp(to.t, k); } });
+  setPanel(s); [...$('timeline').querySelectorAll('[data-i]')].forEach(b => b.classList.toggle('on', +b.dataset.i === i));
+  highlight(s.mesh);
+}
+function setPanel(s) {
+  const P = $('panel'); gsap.to(P, { opacity: 0, x: -14, duration: .25, onComplete: () => {
+    $('p-lbl').textContent = `${String(STOPS.indexOf(s)).padStart(2, '0')} · ${s.label}`; $('p-title').textContent = s.title; $('p-mod').textContent = s.mod;
+    $('p-body').textContent = s.body; $('p-tags').innerHTML = s.tags.map(t => `<span>${t}</span>`).join(''); $('p-fact').textContent = s.fact;
+    gsap.to(P, { opacity: 1, x: 0, duration: .6, delay: .5, ease: 'power2.out' }); } });
+}
+let hl = [];
+function highlight(re) {
+  hl.forEach(m => { m.material.emissive?.set(0); }); hl = [];
+  if (!re) return; pickables.forEach(m => { if (re.test(m.name) && m.material.emissive) { m.material = m.material.clone(); m.material.emissive = new THREE.Color('#ffb070'); m.material.emissiveIntensity = 0; hl.push(m); } });
+  hl.forEach(m => gsap.fromTo(m.material, { emissiveIntensity: .0 }, { emissiveIntensity: .14, duration: .7, delay: 2.6, yoyo: true, repeat: 1 }));
+}
+
+/* timeline */
+const tlEl = $('timeline');
+tlEl.innerHTML = `<button class="nav" id="prev" aria-label="Previous">‹</button>` + STOPS.map((s, i) => `<button data-i="${i}">${s.label}</button>`).join('') + `<button class="nav" id="next" aria-label="Next">›</button>`;
+tlEl.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.id === 'prev') goTo(stop - 1); else if (b.id === 'next') goTo(stop + 1); else goTo(+b.dataset.i); });
+addEventListener('keydown', e => { if (!docked) return; if (e.key === 'ArrowRight') goTo(stop + 1); if (e.key === 'ArrowLeft') goTo(stop - 1); });
+let wheelLock = 0; addEventListener('wheel', e => { if (!docked || performance.now() < wheelLock) return; wheelLock = performance.now() + 1400; goTo(stop + (e.deltaY > 0 ? 1 : -1)); }, { passive: true });
+
+/* drag to look, click / hover modules */
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let drag = null, moved = false;
+canvas.addEventListener('pointerdown', e => { drag = [e.clientX, e.clientY, orbit.dyaw, orbit.dpitch]; moved = false; });
+addEventListener('pointerup', e => { if (drag && !moved && docked) pick(e, true); drag = null; });
+addEventListener('pointermove', e => {
+  if (drag) { const dx = e.clientX - drag[0], dy = e.clientY - drag[1]; if (Math.abs(dx) + Math.abs(dy) > 4) moved = true; orbit.dyaw = drag[2] - dx * .005; orbit.dpitch = Math.max(-.8, Math.min(.8, drag[3] + dy * .004)); }
+  else if (docked) pick(e, false);
+});
+function stopFor(name) { return STOPS.findIndex(s => s.mesh && s.mesh.test(name)); }
+function pick(e, click) {
+  mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(mouse, cam);
+  const hit = ray.intersectObjects(pickables, false).find(h => stopFor(h.object.name) >= 0); const tip = $('tip');
+  if (hit) { const i = stopFor(hit.object.name); canvas.style.cursor = 'pointer';
+    if (click) goTo(i); else { tip.textContent = `${STOPS[i].mod.split(' · ')[0]} → ${STOPS[i].label}`; tip.style.left = e.clientX + 14 + 'px'; tip.style.top = e.clientY + 14 + 'px'; tip.style.opacity = 1; } }
+  else { canvas.style.cursor = drag ? 'grabbing' : 'grab'; tip.style.opacity = 0; }
+}
+
+/* ───────── docking intro ───────── */
+$('dockBtn').addEventListener('click', () => {
+  $('dockBtn').disabled = true; $('dockBtn').textContent = 'Approaching…'; $('status').textContent = 'AUTONOMOUS APPROACH · CLOSING';
+  const st = { x: camPos.x }; let last = st.x, lt = performance.now();
+  gsap.to(st, { x: -2.25, duration: 7, ease: 'power2.inOut', onUpdate: () => {
+    camPos.set(st.x, -0.569, 0.01); camTarget.set(-1.6, -0.569, 0.01);
+    const now = performance.now(), rate = (last - st.x) * 10 / Math.max(.001, (now - lt) / 1000); last = st.x; lt = now;
+    $('d-range').textContent = ((Math.abs(st.x + 1.66)) * 10).toFixed(1) + ' m'; $('d-rate').textContent = Math.abs(rate).toFixed(2) + ' m/s'; },
+    onComplete: () => { $('status').textContent = 'SOFT CAPTURE · HARD CAPTURE CONFIRMED'; $('d-rate').textContent = '0.00 m/s';
+      setTimeout(() => { document.querySelector('#dock').classList.add('hide'); ['patch', 'tele', 'panel', 'timeline', 'hint', 'credit'].forEach(id => $(id).classList.remove('hide')); docked = true; goTo(0, 4.5); }, 900); } });
+});
+
+/* ───────── loop ───────── */
+const clock = new THREE.Clock(); let lastOrbit = 0;
+function frame() {
+  requestAnimationFrame(frame);
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime, now = new Date();
+  if (t - lastOrbit > .25) { updateOrbit(now); lastOrbit = t; }
+  // gentle cinematic drift around the current target + user drag
+  orbit.yaw += ((orbit.dyaw + Math.sin(t * .07) * .05) - orbit.yaw) * .06; orbit.pitch += ((orbit.dpitch + Math.sin(t * .05) * .025) - orbit.pitch) * .06;
+  const off = camPos.clone().sub(camTarget), r = off.length(), yw = Math.atan2(off.x, off.z) + orbit.yaw, pt = Math.asin(Math.max(-1, Math.min(1, off.y / r))) + orbit.pitch;
+  cam.position.set(camTarget.x + Math.sin(yw) * Math.cos(pt) * r, camTarget.y + Math.sin(pt) * r, camTarget.z + Math.cos(yw) * Math.cos(pt) * r);
+  if (!docked) cam.position.copy(camPos);
+  cam.lookAt(camTarget);
+  if (!docked) { cam.rotateZ(Math.sin(t * .4) * .004); $('d-roll').textContent = (Math.sin(t * .4) * .23).toFixed(1) + '°'; }
+  // Earth camera follows the station camera (10 m units → km)
+  earthCam.position.set(cam.position.x * KM, R_E * 0 + cam.position.y * KM, cam.position.z * KM); earthCam.quaternion.copy(cam.quaternion);
+  earthCam.position.y += 0; earthU.camPos.value.copy(earthCam.position);
+  sunLight.position.copy(sunDir).multiplyScalar(50); sunSprite.position.copy(sunDir).multiplyScalar(300000);
+  // telemetry
+  if (docked && (t * 4 | 0) !== ((t - dt) * 4 | 0)) {
+    $('t-utc').textContent = now.toISOString().slice(11, 19);
+    $('t-ll').textContent = `${Math.abs(tele.lat).toFixed(2)}°${tele.lat >= 0 ? 'N' : 'S'} ${Math.abs(tele.lon).toFixed(2)}°${tele.lon >= 0 ? 'E' : 'W'}`;
+    $('t-alt').textContent = tele.alt.toFixed(1) + ' km'; $('t-vel').textContent = tele.vel.toFixed(2) + ' km/s';
+    $('t-sun').textContent = tele.sunlit ? 'Day side' : 'Earth shadow';
+  }
+  composer.render();
+}
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); [cam, earthCam].forEach(c => { c.aspect = innerWidth / innerHeight; c.updateProjectionMatrix(); }); });
+loadTLE().then(() => updateOrbit(new Date()));
+frame();
+window.__dbg = { goTo, STOPS, tele };
+</script>
+</body>
+</html>
