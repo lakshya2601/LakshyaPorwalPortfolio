@@ -32,6 +32,40 @@ button.btn:hover{background:var(--paper);color:var(--ink)}
 #credit{left:50%;transform:translateX(-50%);bottom:1.2vh;font-size:10px;color:#4b5268;letter-spacing:1px;font-family:Arial,sans-serif}
 #tools{right:3vw;bottom:3vh;display:flex;gap:10px;opacity:0}
 #tools button{font-family:inherit;font-size:11px;color:#9aa3b8;background:none;border:1px solid #3a4157;padding:6px 10px;cursor:pointer;letter-spacing:1px}
+
+#chapters{left:2.2vw;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;opacity:0}
+#chapters button{font-family:inherit;background:none;border:0;color:#5d6580;font-size:12px;letter-spacing:1px;text-align:left;cursor:pointer;display:flex;gap:10px;align-items:center;padding:3px 0;transition:color .3s}
+#chapters button em{font-style:normal;width:22px;color:#3b4258}#chapters button span{opacity:0;transform:translateX(-6px);transition:all .3s}
+#chapters:hover button span,#chapters button.on span{opacity:1;transform:none}
+#chapters button.on{color:var(--paper)}#chapters button.on em{color:var(--amber)}#chapters button:disabled{cursor:default;color:#3b4258}
+#next{left:50%;bottom:3.2vh;transform:translateX(-50%);font-size:11px;letter-spacing:3px;color:#8a92a8;opacity:0;animation:bob 2s ease-in-out infinite}
+@keyframes bob{50%{margin-bottom:6px}}
+#panel{opacity:0;pointer-events:none}
+#panel.ch1{right:6vw;top:12vh;width:min(420px,86vw)}
+#panel .letter{background:#f1e7cf;color:var(--ink);padding:30px 32px;font-size:16px;line-height:1.65;transform:rotate(-1.2deg);box-shadow:0 24px 60px rgba(0,0,0,.55)}
+#panel .letter p{margin:0 0 12px}#panel .lt-date{text-align:right;font-size:12px;margin-bottom:16px;opacity:.7}#panel .lt-sign{text-align:right;font-style:italic}
+#panel .reply{margin:18px 0 0 40px;color:var(--amber);font-size:15px;letter-spacing:1px}
+#panel.ch2{left:6vw;bottom:9vh}
+#panel .tag{background:rgba(7,10,20,.72);border-left:3px solid var(--red);padding:14px 18px;font-size:15px;line-height:1.6}
+#panel .tag span{font-size:11px;color:#8a92a8;letter-spacing:1px}
+#panel.ch3{right:5vw;top:14vh;width:min(440px,88vw)}
+#panel .notes{background:#e9dfc6;color:var(--ink);padding:24px 28px;box-shadow:0 24px 60px rgba(0,0,0,.55);transform:rotate(1deg)}
+#panel .nh{font-size:11px;letter-spacing:2px;border-bottom:1px solid var(--ink);padding-bottom:8px;margin-bottom:12px}
+#panel .notes ol{margin:0;padding-left:20px;font-size:15px;line-height:1.6}#panel .notes li{margin-bottom:10px}
+#panel .nf{margin-top:8px;font-size:14px;color:#7a2a1d}
+#panel.case{inset:0;display:flex;align-items:center;justify-content:center}
+#panel .folder{width:min(640px,92vw);max-height:92vh;pointer-events:auto}
+#panel .ftab{display:inline-block;background:#c9a061;color:var(--ink);padding:6px 18px 4px;font-size:13px;letter-spacing:2px;border-radius:6px 6px 0 0;margin-left:24px}
+#panel .fbody{position:relative;background:#d9b878;color:var(--ink);padding:26px 32px 30px;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+#panel .fbody:before{content:"";position:absolute;inset:12px;background:#efe6d2;z-index:0}
+#panel .fbody>*{position:relative;z-index:1;margin-left:10px;margin-right:10px}
+#panel .fwhere{font-size:12px;letter-spacing:1px;opacity:.7;padding-top:6px}
+#panel h2{font-family:'Playfair Display',serif;font-size:28px;margin:4px 10px 10px;line-height:1.1}
+#panel .frow{display:grid;grid-template-columns:130px 1fr;gap:12px;border-top:1px dashed rgba(26,22,18,.3);padding:7px 0}
+#panel .frow span{font-size:11px;letter-spacing:2px;color:#7a2a1d;padding-top:3px}#panel .frow p{margin:0;font-size:14.5px;line-height:1.55}
+#panel .frow i{font-style:normal;display:inline-block;border:1px solid rgba(26,22,18,.4);padding:1px 7px;margin:0 4px 4px 0;font-size:12.5px}
+#panel .fstamp{position:absolute;right:30px;bottom:26px;border:4px solid #a3231d;color:#a3231d;font-size:30px;padding:2px 12px;letter-spacing:3px;opacity:0;mix-blend-mode:multiply}
+@media (max-width:720px){#panel .frow{grid-template-columns:1fr;gap:2px}#chapters{display:none}#panel.ch1,#panel.ch3{right:4vw;left:4vw;width:auto;top:8vh}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 <script type="importmap">{"imports":{"three":"./lib/three.module.js","three/addons/":"./lib/addons/"}}</script>
@@ -53,6 +87,9 @@ button.btn:hover{background:var(--paper);color:var(--ink)}
 <div id="stamp">ON DUTY</div>
 </div></div>
 <div id="hint" class="ui">move your cursor · he's watching</div>
+<div id="panel" class="ui"></div>
+<nav id="chapters" class="ui" aria-label="Chapters"></nav>
+<div id="next" class="ui">SCROLL · NEXT CLUE ↓</div>
 <div id="credit" class="ui">Character model generated with Meshy AI · CC BY 4.0</div>
 <div id="tools" class="ui"><button id="mute">SOUND ON</button><button id="replay">REPLAY</button></div>
 <script src="./lib/gsap.min.js"></script>
