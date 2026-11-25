@@ -221,7 +221,8 @@ export function initChapters(ctx) {
     start() { active = true; cur = 0; nav.querySelector('button').classList.add('on'); gsap.to(['#chapters', '#next'], { opacity: 1, duration: 1 }); },
     reset() { active = false; cur = 0; board.visible = false; drawer.position.z = -7.07; panel.innerHTML = ''; gsap.set(['#chapters', '#next', panel], { opacity: 0 }); nav.querySelectorAll('button').forEach((b) => b.classList.remove('on')); },
     get index() { return cur; }, go, count: () => CH.length,
-    update(t) { s2.update(t, { mon: !!CH[cur]?.mon }); },
+    update(t) { s2.update(t, { mon: !!CH[cur]?.mon || s2.forceMon }); },
+    s2, openDrawer(o) { gsap.to(drawer.position, { z: o ? -6.68 : -7.07, duration: 1, ease: 'power3.out' }); gsap.to(archLight, { intensity: o ? 4.5 : 0, duration: .8 }); },
     steam(ms) { s2.setSteam(1); setTimeout(() => s2.setSteam(CH[cur].steam ? 1 : 0), ms); },
   };
 }

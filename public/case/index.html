@@ -94,6 +94,21 @@ button.btn:hover{background:var(--paper);color:var(--ink)}
 #secret button{font-family:inherit;background:var(--ink);color:var(--paper);border:0;padding:10px 18px;letter-spacing:2px;cursor:pointer}
 body.noir #cv{filter:grayscale(1) contrast(1.25) brightness(.95);animation:flick .12s steps(2) infinite}
 @keyframes flick{50%{filter:grayscale(1) contrast(1.3) brightness(1.02)}}
+
+.btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+button.btn.primary{background:var(--paper);color:var(--ink)}button.btn.primary:hover{background:var(--amber)}
+#phud{left:50%;top:3vh;transform:translateX(-50%);font-size:11px;letter-spacing:3px;color:var(--amber);opacity:0}
+#subtitle{left:50%;bottom:8vh;transform:translateX(-50%);width:min(760px,90vw);text-align:center;font-size:17px;line-height:1.55;color:var(--paper);background:rgba(5,7,13,.72);padding:12px 18px;opacity:0;pointer-events:none}
+#subtitle.react{color:#ffd9a0}
+#ptip{opacity:0;pointer-events:none;font-size:12px;letter-spacing:2px;background:var(--paper);color:var(--ink);padding:6px 10px;white-space:nowrap;transition:opacity .2s}
+#pend{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center}
+#pend .card{position:relative;background:#efe6d2;color:var(--ink);padding:28px 32px;width:min(500px,92vw);box-shadow:0 30px 80px rgba(0,0,0,.7)}
+#pend small{letter-spacing:2px;font-size:11px}#pend h2{font-family:'Playfair Display',serif;font-size:36px;margin:8px 0 10px}
+#pend p{font-size:15px;line-height:1.6;margin:0 0 10px}#pend .pnote{color:#7a2a1d}
+#pend .pstamp{position:absolute;right:26px;top:26px;border:4px solid #a3231d;color:#a3231d;padding:2px 10px;letter-spacing:2px;transform:rotate(-12deg);font-size:15px;opacity:0;mix-blend-mode:multiply}
+#pend .pbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+#pend .pbtns button{font-family:inherit;letter-spacing:2px;font-size:12px;padding:11px 14px;border:1px solid var(--ink);background:none;color:var(--ink);cursor:pointer}
+#pend .pbtns .phire{background:var(--ink);color:var(--paper)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 <script type="importmap">{"imports":{"three":"./lib/three.module.js","three/addons/":"./lib/addons/"}}</script>
@@ -105,7 +120,7 @@ body.noir #cv{filter:grayscale(1) contrast(1.25) brightness(.95);animation:flick
 <div id="loader" class="ui"><small>DEVELOPING THE FILM</small><div class="bar"><i id="lbar"></i></div></div>
 <div id="street" class="ui" style="opacity:0">
 <div class="meta">INDORE · <span id="clock">11:47 PM</span> · RAINING</div>
-<button class="btn" id="enter">ENTER THE OFFICE</button>
+<div class="btns"><button class="btn primary" id="play">PLAY DETECTIVE MODE</button><button class="btn" id="enter">TAKE THE TOUR</button></div>
 <div class="snd">best with sound on</div>
 </div>
 <div id="note" class="ui"><div class="card">
@@ -118,12 +133,14 @@ body.noir #cv{filter:grayscale(1) contrast(1.25) brightness(.95);animation:flick
 <div id="panel" class="ui"></div>
 <nav id="chapters" class="ui" aria-label="Chapters"></nav>
 <div id="next" class="ui">SCROLL · NEXT CLUE ↓</div>
-<div id="clues" class="ui" role="button" tabindex="0">CLUES <b>0/6</b></div>
 <div id="zzz" class="ui">z z z</div>
-<div id="secret"><div class="card"><small style="letter-spacing:2px">CLASSIFIED · FILE 007</small><h2>Off the record</h2>
-<p>You found every clue. That's exactly the kind of attention to detail I look for.</p>
-<p>Truth is, the detective's best thinking happens over a kulhad from Chai Thikana, and his favourite case is the one where someone says "it works on my machine".</p>
-<p>Born 26 December. If you're reading this, we should probably talk.</p><button>CLOSE THE FILE</button></div></div>
+<div id="phud" class="ui"></div>
+<div id="subtitle" class="ui"></div>
+<div id="ptip" class="ui"></div>
+<div id="pend"><div class="card"><small>PARTNER PROFILE · CASE OF THE LYING MODEL</small><h2></h2><p class="pdesc"></p><p class="pmeta"></p>
+<p><b>The case you'd love most:</b> <span class="pcase"></span></p><p class="pnote">Lakshya works best with partners like you.</p>
+<div class="pstamp">CASE CLOSED</div>
+<div class="pbtns"><button class="phire">HIRE YOUR PARTNER</button><button class="pshare">SHARE</button><button class="ptour">TAKE THE TOUR</button></div></div></div>
 <div id="credit" class="ui">Character model generated with Meshy AI · CC BY 4.0</div>
 <div id="tools" class="ui"><button id="mute">SOUND ON</button><button id="replay">REPLAY</button></div>
 <script src="./lib/gsap.min.js"></script>
