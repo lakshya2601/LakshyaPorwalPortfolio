@@ -1,4 +1,5 @@
 // Chapters after the intro: scroll / arrow keys / swipe / chapter list move the camera through the office.
+import { buildScenes2 } from './scenes2.js';
 export function initChapters(ctx) {
   const { THREE, S, cam, shot, gsap, sfx, R } = ctx;
   const $ = (id) => document.getElementById(id);
@@ -60,6 +61,7 @@ export function initChapters(ctx) {
   const archLight = new THREE.PointLight(0xffc890, 0, 3, 1.6); archLight.position.set(-2.75, 1.75, -6.3); S.add(archLight);
   drawer.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
 
+  const s2 = buildScenes2(THREE, S);
   /* ---------- chapters ---------- */
   const OFFICE = { px: .1, py: 1.5, pz: -2.2, lx: 0, ly: 1.22, lz: -5.3 };
   const CASES = [
@@ -105,7 +107,50 @@ export function initChapters(ctx) {
       <div class="nf">That's RAG. I build it, and the pipelines that keep it fresh.</div></div>`,
     },
     ...CASES.map((c) => ({ name: `Case #${c.no}`, cam: DESK, html: caseHTML(c), case: true })),
+    {
+      name: 'The surveillance room', cam: { px: 1.15, py: 1.45, pz: -3.0, lx: 2.6, ly: 1.2, lz: -1.4 }, mon: true,
+      html: `<div class="notes"><div class="nh">SURVEILLANCE · WHY NOTHING BURNS DURING SERVICE</div>
+      <ol><li><b>Pipelines.</b> CI/CD for models, not just code: every change is tested, versioned (MLflow) and shipped in containers (Docker, Kubernetes).</li>
+      <li><b>Watch.</b> Model health, errors, latency and cost on screens that never sleep.</li>
+      <li><b>React.</b> When drift shows up, the alarm goes red, the model is retrained, and the board goes green again.</li></ol>
+      <div class="nf">Watch the top-right monitor.</div></div>`,
+    },
+    { name: 'The wall of badges', cam: { px: 1.2, py: 1.85, pz: -5.2, lx: 4, ly: 1.82, lz: -5.2 }, badges: true, html: `<div class="tag"><b>SERVICE RECORD</b><br>Ctruh → Freelance → Cansvolution → Leezova.<br><span>two years, four teams, one direction: AI in production</span></div>` },
+    { name: 'The classroom', cam: { px: -2.15, py: 1.82, pz: -1.7, lx: -4, ly: 1.82, lz: -1.7 }, html: `<div class="tag"><b>TRAINING A ROOKIE</b><br>I help design Leezova's internship curriculum<br>and run hands-on MLOps sessions.<br><span>the best way to learn it is to teach it</span></div>` },
+    { name: 'Off duty', cam: { px: 1.1, py: 1.42, pz: -3.25, lx: .5, ly: 1.0, lz: -4.35 }, steam: true, html: `<div class="notes"><div class="nh">OFF THE CLOCK</div><p class="plain">Off duty, the detective cooks, chases mountain trails, and never says no to a kulhad from <b>Chai Thikana</b>.</p><p class="plain small">Rumour has it there are clues hidden around this office. Type, click, and look closely.</p></div>` },
+    { name: 'Case closed', cam: { px: .1, py: 1.55, pz: -1.6, lx: 0, ly: 1.2, lz: -5.3 }, contact: true, html: contactHTML() },
   ];
+  function contactHTML() {
+    return `<div class="tip"><div class="nh">CASE CLOSED · LEAVE A TIP</div>
+      <p class="plain">Got a case? Type it up and slide it under the door. I reply within a day or two.</p>
+      <form id="tipform" novalidate>
+        <input name="email" type="email" placeholder="you@company.com" aria-label="Your email" autocomplete="email">
+        <input name="company" placeholder="Company (optional)" aria-label="Company">
+        <select name="reason" aria-label="Reason"><option>Hiring</option><option>Freelance project</option><option>Collaboration</option><option>Just saying hi</option></select>
+        <textarea name="message" rows="4" placeholder="What's the case?" aria-label="Message"></textarea>
+        <button type="submit">SLIDE IT UNDER THE DOOR</button><div class="msg" role="status"></div>
+      </form>
+      <div class="links"><a href="mailto:lakshyap2601@gmail.com">EMAIL</a><a href="https://www.linkedin.com/in/lakshyap2601" target="_blank" rel="noopener">LINKEDIN</a><a href="https://github.com/lakshya2601" target="_blank" rel="noopener">GITHUB</a><a href="./assets/Lakshya_Porwal_Resume.pdf" target="_blank" rel="noopener">RESUME</a></div></div>`;
+  }
+  function wireForm() {
+    const f = document.getElementById('tipform'); if (!f) return; const msg = f.querySelector('.msg');
+    f.addEventListener('input', () => { msg.textContent = ''; msg.className = 'msg'; });
+    f.onsubmit = async (e) => {
+      e.preventDefault(); const d = Object.fromEntries(new FormData(f));
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email || '')) { msg.textContent = 'Enter a valid email first.'; msg.className = 'msg err'; return; }
+      if ((d.message || '').trim().length < 5) { msg.textContent = 'Write a short message first.'; msg.className = 'msg err'; return; }
+      const b = f.querySelector('button'); b.disabled = true; b.textContent = 'SLIDING…';
+      try {
+        const r = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || 'Could not send.');
+        f.innerHTML = '<div class="sent">Received. The detective is on it.</div>'; sfx.thud();
+      } catch (err) {
+        msg.innerHTML = (err.message || 'Could not send.') + ' <a href="mailto:lakshyap2601@gmail.com">Email me directly.</a>'; msg.className = 'msg err';
+        b.disabled = false; b.textContent = 'SLIDE IT UNDER THE DOOR';
+      }
+    };
+  }
   function caseHTML(c) {
     return `<div class="folder"><div class="ftab">CASE #${c.no}</div><div class="fbody">
       <div class="fwhere">${c.where}</div><h2>${c.title}</h2>
@@ -115,10 +160,10 @@ export function initChapters(ctx) {
       <div class="frow"><span>THE VERDICT</span><p><b>${c.verdict}</b></p></div>
       <div class="fstamp">SOLVED</div></div></div>`;
   }
-  nav.innerHTML = CH.map((c, i) => `<button data-i="${i}"><em>${String(i + 1).padStart(2, '0')}</em><span>${c.name}</span></button>`).join('') + `<button disabled><em>··</em><span>more cases soon</span></button>`;
+  nav.innerHTML = CH.map((c, i) => `<button data-i="${i}"><em>${String(i + 1).padStart(2, '0')}</em><span>${c.name}</span></button>`).join('') ;
   nav.querySelectorAll('button[data-i]').forEach((b) => (b.onclick = () => go(+b.dataset.i)));
 
-  let cur = 0, busy = false, active = false;
+  let cur = 0, busy = false, active = false, alarmT;
   function go(i) {
     if (!active || busy || i === cur || i < 0 || i >= CH.length) return;
     busy = true; const prev = cur; cur = i;
@@ -128,16 +173,22 @@ export function initChapters(ctx) {
     // panel
     gsap.to(panel, { opacity: 0, y: 14, duration: .35, onComplete: () => {
       panel.className = 'ui ch' + i + (CH[i].case ? ' case' : '');
-      panel.innerHTML = CH[i].html || '';
+      panel.innerHTML = CH[i].html || ''; wireForm();
       if (CH[i].html) gsap.fromTo(panel, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: .8, delay: same ? 0 : 1.2, ease: 'power3.out', onStart: () => { if (CH[i].case || i === 1) sfx.paper(); } });
       const st = panel.querySelector('.fstamp');
       if (st) gsap.fromTo(st, { opacity: 0, scale: 2.4, rotate: -24 }, { opacity: 1, scale: 1, rotate: -12, duration: .28, delay: (same ? .5 : 1.8), ease: 'power4.in', onComplete: sfx.thud });
     } });
     gsap.to('#note', { opacity: i === 0 ? 1 : 0, duration: .5 });
+    gsap.to('#next', { opacity: i === CH.length - 1 ? 0 : 1, duration: .5 });
     // chapter-specific 3D
     if (i === 2) showBoard(); else if (prev === 2) board.visible = false;
     gsap.to(drawer.position, { z: i === 3 ? -6.68 : -7.07, duration: 1.1, delay: i === 3 ? 1.6 : 0, ease: 'power3.out', onStart: () => { if (i === 3) sfx.slide(); } });
     gsap.to(archLight, { intensity: i === 3 ? 4.5 : 0, duration: 1 });
+    gsap.to(s2.monGlow, { intensity: CH[i].mon ? 3 : 0, duration: 1 });
+    gsap.to(s2.badgeLight, { intensity: CH[i].badges ? 14 : 0, duration: 1 });
+    s2.setSteam(CH[i].steam ? 1 : 0);
+    clearTimeout(alarmT); s2.setAlarm(0);
+    if (CH[i].mon) { alarmT = setTimeout(() => { s2.setAlarm(1); sfx.tick(880, .15, .15, 'square'); alarmT = setTimeout(() => s2.setAlarm(-1), 3500); }, 3500); }
     setTimeout(() => { busy = false; }, same ? 700 : 1500);
   }
   function showBoard() {
@@ -169,6 +220,8 @@ export function initChapters(ctx) {
   return {
     start() { active = true; cur = 0; nav.querySelector('button').classList.add('on'); gsap.to(['#chapters', '#next'], { opacity: 1, duration: 1 }); },
     reset() { active = false; cur = 0; board.visible = false; drawer.position.z = -7.07; panel.innerHTML = ''; gsap.set(['#chapters', '#next', panel], { opacity: 0 }); nav.querySelectorAll('button').forEach((b) => b.classList.remove('on')); },
-    get index() { return cur; }, go,
+    get index() { return cur; }, go, count: () => CH.length,
+    update(t) { s2.update(t, { mon: !!CH[cur]?.mon }); },
+    steam(ms) { s2.setSteam(1); setTimeout(() => s2.setSteam(CH[cur].steam ? 1 : 0), ms); },
   };
 }
