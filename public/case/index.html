@@ -29,6 +29,7 @@ button.btn:hover{background:var(--paper);color:var(--ink)}
 #type{font-size:15px;line-height:1.6;min-height:150px;white-space:pre-wrap}
 #stamp{position:absolute;right:16px;bottom:14px;border:3px solid #a3231d;color:#a3231d;font-size:18px;padding:2px 8px;transform:rotate(-12deg) scale(2);opacity:0;letter-spacing:2px}
 #hint{left:3vw;bottom:3vh;color:#6f7790;font-size:11px;letter-spacing:2px;opacity:0}
+#credit{left:50%;transform:translateX(-50%);bottom:1.2vh;font-size:10px;color:#4b5268;letter-spacing:1px;font-family:Arial,sans-serif}
 #tools{right:3vw;bottom:3vh;display:flex;gap:10px;opacity:0}
 #tools button{font-family:inherit;font-size:11px;color:#9aa3b8;background:none;border:1px solid #3a4157;padding:6px 10px;cursor:pointer;letter-spacing:1px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
@@ -52,6 +53,7 @@ button.btn:hover{background:var(--paper);color:var(--ink)}
 <div id="stamp">ON DUTY</div>
 </div></div>
 <div id="hint" class="ui">move your cursor · he's watching</div>
+<div id="credit" class="ui">Character model generated with Meshy AI · CC BY 4.0</div>
 <div id="tools" class="ui"><button id="mute">SOUND ON</button><button id="replay">REPLAY</button></div>
 <script src="./lib/gsap.min.js"></script>
 <script type="module" src="./main.js"></script>

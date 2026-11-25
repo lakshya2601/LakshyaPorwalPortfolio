@@ -4,7 +4,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { buildDetective } from './detective.js';
+import { loadDetective, POSE } from './detective.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('cv');
@@ -147,9 +147,9 @@ moon.castShadow = true; moon.shadow.mapSize.set(1024, 1024); moon.shadow.bias = 
 S.add(moon, moon.target);
 
 /* ---------------- detective ---------------- */
-const det = buildDetective(THREE);
-det.root.position.set(0, 0, -5.25); S.add(det.root);
-det.root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+const det = loadDetective(THREE, manager, A + 'detective.glb', POSE);
+det.root.position.set(0, 0, -5.5); S.add(det.root);
+const rim = new THREE.SpotLight(0x9fb6ff, 6, 6, .6, .8, 1.5); rim.position.set(-1.2, 2.6, -6.6); rim.target.position.set(0, 1.3, -5.4); S.add(rim, rim.target);
 
 /* ---------------- rain ---------------- */
 const RN = 3000, rp = new Float32Array(RN * 6), rv = new Float32Array(RN);
@@ -182,7 +182,7 @@ S.add(new THREE.Points(dg, new THREE.PointsMaterial({ color: 0xb8c8ff, size: .01
 /* ---------------- post ---------------- */
 const comp = new EffectComposer(R);
 comp.addPass(new RenderPass(S, cam));
-const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .55, .5, .85); comp.addPass(bloom);
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .45, .5, .92); comp.addPass(bloom);
 comp.addPass(new OutputPass());
 function size() {
   const w = innerWidth, h = innerHeight; R.setSize(w, h, false); comp.setSize(w, h);
@@ -227,13 +227,13 @@ const START = { px: -.7, py: 1.55, pz: 9, lx: 0, ly: 1.95, lz: 0 };
 const shot = { ...START };
 let state = 'street', headDown = 1;
 const BIO = 'AI/ML engineer, Indore.\n\nI build AI that survives production: LLMs, RAG, and the MLOps that keeps them honest.\n\nTwo years. Four firms. Every case closed.';
-let typer;
+let typer, typing = false;
 function typeIt() {
-  clearInterval(typer); $('type').textContent = ''; let i = 0;
+  clearInterval(typer); $('type').textContent = ''; let i = 0; typing = true;
   typer = setInterval(() => {
     $('type').textContent = BIO.slice(0, ++i);
     if (BIO[i - 1] && BIO[i - 1].trim() && i % 2) tick(2300 + Math.random() * 500, .018, .04);
-    if (i >= BIO.length) { clearInterval(typer); gsap.to('#stamp', { opacity: 1, scale: 1, duration: .25, ease: 'power4.in', onComplete: thud }); }
+    if (i >= BIO.length) { clearInterval(typer); typing = false; gsap.to('#stamp', { opacity: 1, scale: 1, duration: .25, ease: 'power4.in', onComplete: thud }); }
   }, 34);
 }
 function flickOn() {
@@ -250,7 +250,7 @@ function enter() {
     .to(shot, { px: 0, py: 1.5, pz: 2.4, lx: 0, ly: 1.4, lz: -2, duration: 2.6, ease: 'power2.inOut' })
     .add(creak, '-=.7')
     .to(world.door?.rotation || {}, { y: 1.7, duration: 1.4, ease: 'power2.inOut' }, '-=.8')
-    .to(shot, { px: .15, py: 1.48, pz: -1.6, lx: 0, ly: 1.12, lz: -5, duration: 2.8, ease: 'power2.inOut' }, '-=.4')
+    .to(shot, { px: .1, py: 1.5, pz: -2.2, lx: 0, ly: 1.22, lz: -5.3, duration: 3, ease: 'power2.inOut' }, '-=.4')
     .to(S.fog, { density: .02, duration: 2.4 }, '<')
     .add(() => { state = 'office'; if (rainG) rainG.gain.linearRampToValueAtTime(.05, ac.currentTime + 1.5); })
     .add(() => { tick(700, .07, .35); flickOn(); }, '+=.6')
@@ -307,8 +307,9 @@ function loop() {
   lampL.intensity = lamp.v * 9; lampFill.intensity = lamp.v * 1.4;
   bulb.material.color.setRGB(lamp.v * 6, lamp.v * 3.6, lamp.v * 1.6);
   det.update(t, dt, {
-    yaw: state === 'office' ? smx * .5 : 0,
-    pitch: headDown * .45 + (state === 'office' ? -smy * .25 : 0),
+    yaw: state === 'office' ? smx * .6 : 0,
+    pitch: headDown * .9 + (state === 'office' ? -smy * .35 : 0),
+    typing: typing ? 1 : 0,
   });
   const sway = state === 'office' ? 1 : 0;
   cam.position.set(shot.px + smx * .2 * sway, shot.py + smy * .08 * sway + Math.sin(t * .45) * .008, shot.pz);
@@ -317,4 +318,4 @@ function loop() {
   comp.render(); requestAnimationFrame(loop);
 }
 loop();
-window.__case = { shot, lamp, S, cam, setState: (s) => { state = s; }, head: (h) => { headDown = h; } };
+window.__case = { shot, lamp, S, cam, det, POSE, setState: (s) => { state = s; }, head: (h) => { headDown = h; } };
