@@ -7,6 +7,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { loadDetective, POSE } from './detective.js';
 import { initChapters } from './chapters.js';
 import { initEggs } from './eggs.js';
+import { initPlay } from './play.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('cv');
@@ -230,6 +231,9 @@ function paper() {
 }
 function slide() { if (!ac) return; const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(70, ac.currentTime); o.frequency.linearRampToValueAtTime(50, ac.currentTime + .6);
   const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 400; g.gain.setValueAtTime(.12, ac.currentTime); g.gain.linearRampToValueAtTime(0, ac.currentTime + .7); o.connect(f).connect(g).connect(master); o.start(); o.stop(ac.currentTime + .75); }
+function ring() { for (let r = 0; r < 2; r++) for (let i = 0; i < 12; i++) setTimeout(() => tick(i % 2 ? 1180 : 1320, .045, .12, 'sine'), r * 700 + i * 45); }
+function door() { creak(); setTimeout(() => thud(), 700); }
+function step() { tick(110 + Math.random() * 30, .06, .18, 'triangle'); }
 function thud() { tick(90, .25, .5, 'sine'); tick(140, .12, .25, 'triangle'); }
 
 /* ---------------- story ---------------- */
@@ -253,7 +257,9 @@ function flickOn() {
     .to(L, { v: .25, duration: .1 }).to(L, { v: 1, duration: .35, ease: 'power2.out' });
   const H = { h: 1 }; gsap.to(H, { h: 0, duration: 1, delay: .9, ease: 'power2.out', onUpdate: () => { headDown = H.h; } });
 }
-function enter() {
+let mode = 'tour';
+function enter(md = 'tour') {
+  mode = md;
   if (state !== 'street') return; state = 'moving'; audio();
   gsap.to('#street', { opacity: 0, duration: .5, onComplete: () => { $('street').style.pointerEvents = 'none'; } });
   gsap.timeline()
@@ -265,14 +271,17 @@ function enter() {
     .add(() => { state = 'office'; if (rainG) rainG.gain.linearRampToValueAtTime(.05, ac.currentTime + 1.5); })
     .add(() => { tick(700, .07, .35); flickOn(); }, '+=.6')
     .add(() => {
+      gsap.to('#tools', { opacity: 1, duration: .8, delay: 1.2 });
+      if (mode === 'play') { play.start(); return; }
       gsap.to('#note', { opacity: 1, y: 0, duration: .9, ease: 'power3.out' });
-      gsap.to(['#hint', '#tools'], { opacity: 1, duration: .8, delay: 1.2 });
+      gsap.to('#hint', { opacity: 1, duration: .8, delay: 1.2 });
       typeIt();
     }, '+=1.1');
 }
-$('enter').onclick = enter;
+$('enter').onclick = () => enter('tour');
+$('play').onclick = () => enter('play');
 $('replay').onclick = () => {
-  chapters.reset(); gsap.killTweensOf(shot);
+  play.stop(); chapters.reset(); gsap.killTweensOf(shot);
   clearInterval(typer); gsap.killTweensOf(shot); Object.assign(shot, START);
   lamp.v = 0; headDown = 1; S.fog.density = .055; state = 'street';
   gsap.set('#note', { opacity: 0, y: 16 }); gsap.set('#stamp', { opacity: 0, scale: 2 }); gsap.set(['#hint', '#tools'], { opacity: 0 });
@@ -281,6 +290,8 @@ $('replay').onclick = () => {
 $('mute').onclick = () => { muted = !muted; if (master) master.gain.value = muted ? 0 : 1; $('mute').textContent = muted ? 'SOUND OFF' : 'SOUND ON'; };
 gsap.set('#note', { y: 16 });
 const chapters = initChapters({ THREE, S, cam, shot, gsap, R, sfx: { tick, thud, paper, slide } });
+const play = initPlay({ THREE, S, cam, gsap, chapters, sfx: { tick, thud, ring, door, step, slide },
+  toTour: (hire) => { Object.assign(shot, { px: .1, py: 1.5, pz: -2.2, lx: 0, ly: 1.22, lz: -5.3 }); chapters.start(); if (hire) setTimeout(() => chapters.go(chapters.count() - 1), 300); else { gsap.to('#note', { opacity: 1, y: 0, duration: .8 }); typeIt(); } } });
 const eggs = initEggs({ THREE, S, cam, lamp, gsap, det, chapters, sfx: { tick, thud }, setHead: (h) => gsap.to({ h: headDown }, { h, duration: .8, onUpdate() { headDown = this.targets()[0].h; } }), getState: () => state, steam: (ms) => chapters.steam(ms) });
 { const d = new Date(); $('clock').textContent = d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }).toUpperCase(); }
 
@@ -325,11 +336,12 @@ function loop() {
     typing: typing ? 1 : 0,
   });
   const sway = state === 'office' ? 1 : 0;
+  if (play.active) play.camera(dt); else {
   cam.position.set(shot.px + smx * .2 * sway, shot.py + smy * .08 * sway + Math.sin(t * .45) * .008, shot.pz);
-  look.set(shot.lx + smx * .14, shot.ly, shot.lz); cam.lookAt(look);
+  look.set(shot.lx + smx * .14, shot.ly, shot.lz); cam.lookAt(look); }
   chapters.update(t); eggs.update();
   $('grain').style.transform = `translate(${(Math.random() * 24) | 0}px,${(Math.random() * 24) | 0}px)`;
   comp.render(); requestAnimationFrame(loop);
 }
 loop();
-window.__case = { shot, lamp, S, cam, det, POSE, chapters, setState: (s) => { state = s; }, head: (h) => { headDown = h; } };
+window.__case = { shot, lamp, S, cam, det, POSE, chapters, play, enter, setState: (s) => { state = s; }, head: (h) => { headDown = h; } };

@@ -1,28 +1,10 @@
-// Easter eggs. Six clues are counted in the notebook; find all six and the secret file opens.
+// Hidden extras (uncounted): Konami noir mode, typed words, lamp clicks, napping detective, console riddle.
 export function initEggs(ctx) {
   const { THREE, cam, lamp, gsap, sfx, chapters, setHead, det, getState } = ctx;
   const $ = (id) => document.getElementById(id);
   const CLUES = { noir: 'Konami code: the film turns black and white', chai: 'Typed "chai"', hire: 'Typed "hire"', lamp: 'Clicked the lamp five times', nap: 'Caught the detective napping', elementary: 'Solved the console riddle' };
-  const found = new Set(JSON.parse(sessionStorage.getItem('clues') || '[]'));
-  const book = $('clues');
   const toast = (t) => { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); gsap.fromTo(d, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: .4 }); gsap.to(d, { opacity: 0, delay: 3.2, duration: .6, onComplete: () => d.remove() }); };
-  function renderBook() { book.querySelector('b').textContent = `${found.size}/6`; book.title = [...found].map((k) => '✓ ' + CLUES[k]).join('\n') || 'Nothing found yet'; }
-  function clue(k) {
-    if (found.has(k)) return; found.add(k);
-    try { sessionStorage.setItem('clues', JSON.stringify([...found])); } catch (e) { /* private mode */ }
-    renderBook(); sfx.tick(1200, .08, .15, 'triangle'); setTimeout(() => sfx.tick(1600, .1, .15, 'triangle'), 90);
-    gsap.fromTo(book, { scale: 1.25 }, { scale: 1, duration: .5, ease: 'back.out(3)' });
-    toast(`Clue found: ${CLUES[k]} (${found.size}/6)`);
-    if (found.size === 6) setTimeout(secret, 1600);
-  }
-  function secret() {
-    const s = $('secret'); s.style.display = 'flex'; gsap.fromTo(s.firstElementChild, { y: 40, opacity: 0, rotate: -3 }, { y: 0, opacity: 1, rotate: -1, duration: .8, ease: 'power3.out' });
-    sfx.thud();
-  }
-  $('secret').onclick = (e) => { if (e.target.id === 'secret' || e.target.tagName === 'BUTTON') $('secret').style.display = 'none'; };
-  book.onclick = () => toast(found.size ? `Found ${found.size}/6: ${[...found].map((k) => CLUES[k]).join(' · ')}` : 'No clues yet. Type, click, and look closely.');
-  renderBook(); gsap.to(book, { opacity: 1, duration: 1, delay: 2 });
-
+  function clue() { /* hidden extras are uncounted now */ }
   /* typed words + konami */
   const K = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
   let ki = 0, buf = '';
