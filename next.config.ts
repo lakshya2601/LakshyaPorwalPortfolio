@@ -2,10 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // The ISS station experience (public/station) is the homepage.
-  // The previous Ama Dablam version is still in src/app and can be removed later.
+  // The detective "Case Files" experience (public/case) is the homepage.
+  // Older experiments: /station/index.html (ISS) and the Ama Dablam app in src/app.
   async redirects() {
-    return [{ source: "/", destination: "/station/index.html", permanent: false }];
+    return [{ source: "/", destination: "/case/index.html", permanent: false }];
   },
 };
 
