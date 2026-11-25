@@ -6,6 +6,7 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { loadDetective, POSE } from './detective.js';
 import { initChapters } from './chapters.js';
+import { initEggs } from './eggs.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('cv');
@@ -280,6 +281,7 @@ $('replay').onclick = () => {
 $('mute').onclick = () => { muted = !muted; if (master) master.gain.value = muted ? 0 : 1; $('mute').textContent = muted ? 'SOUND OFF' : 'SOUND ON'; };
 gsap.set('#note', { y: 16 });
 const chapters = initChapters({ THREE, S, cam, shot, gsap, R, sfx: { tick, thud, paper, slide } });
+const eggs = initEggs({ THREE, S, cam, lamp, gsap, det, chapters, sfx: { tick, thud }, setHead: (h) => gsap.to({ h: headDown }, { h, duration: .8, onUpdate() { headDown = this.targets()[0].h; } }), getState: () => state, steam: (ms) => chapters.steam(ms) });
 { const d = new Date(); $('clock').textContent = d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }).toUpperCase(); }
 
 let mx = 0, my = 0, smx = 0, smy = 0;
@@ -325,6 +327,7 @@ function loop() {
   const sway = state === 'office' ? 1 : 0;
   cam.position.set(shot.px + smx * .2 * sway, shot.py + smy * .08 * sway + Math.sin(t * .45) * .008, shot.pz);
   look.set(shot.lx + smx * .14, shot.ly, shot.lz); cam.lookAt(look);
+  chapters.update(t); eggs.update();
   $('grain').style.transform = `translate(${(Math.random() * 24) | 0}px,${(Math.random() * 24) | 0}px)`;
   comp.render(); requestAnimationFrame(loop);
 }

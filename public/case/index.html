@@ -66,6 +66,34 @@ button.btn:hover{background:var(--paper);color:var(--ink)}
 #panel .frow i{font-style:normal;display:inline-block;border:1px solid rgba(26,22,18,.4);padding:1px 7px;margin:0 4px 4px 0;font-size:12.5px}
 #panel .fstamp{position:absolute;right:30px;bottom:26px;border:4px solid #a3231d;color:#a3231d;font-size:30px;padding:2px 12px;letter-spacing:3px;opacity:0;mix-blend-mode:multiply}
 @media (max-width:720px){#panel .frow{grid-template-columns:1fr;gap:2px}#chapters{display:none}#panel.ch1,#panel.ch3{right:4vw;left:4vw;width:auto;top:8vh}}
+
+#panel.ch7,#panel.ch10{right:5vw;top:12vh;width:min(440px,88vw)}
+#panel.ch8,#panel.ch9{left:6vw;bottom:9vh}
+#panel .plain{font-size:15px;line-height:1.6;margin:0 0 10px}#panel .small{font-size:13px;opacity:.75}
+#panel.ch11{inset:0;display:flex;align-items:center;justify-content:flex-end;padding-right:5vw}
+#panel .tip{width:min(420px,90vw);pointer-events:auto;max-height:94vh;overflow:auto}
+#panel .tip{background:#ece2c9;color:var(--ink);padding:24px 26px;box-shadow:0 24px 60px rgba(0,0,0,.55)}
+#panel form{display:flex;flex-direction:column;gap:9px;margin-top:6px}
+#panel input,#panel select,#panel textarea{font-family:inherit;font-size:14px;background:#f7f1e2;border:1px solid rgba(26,22,18,.35);padding:9px 10px;color:var(--ink);border-radius:0}
+#panel textarea{resize:vertical}
+#panel form button{font-family:inherit;letter-spacing:2px;font-size:13px;background:var(--ink);color:var(--paper);border:0;padding:12px;cursor:pointer}
+#panel form button:disabled{opacity:.6}
+#panel .msg{font-size:13px;min-height:16px}#panel .msg.err{color:#a3231d}#panel .msg a{color:inherit}
+#panel .sent{font-size:16px;padding:20px 0;color:#2f6b3a}
+#panel .links{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;border-top:1px dashed rgba(26,22,18,.3);padding-top:12px}
+#panel .links a{color:#7a2a1d;font-size:12px;letter-spacing:2px;text-decoration:none}#panel .links a:hover{text-decoration:underline}
+
+#clues{right:3vw;top:3vh;opacity:0;font-size:12px;letter-spacing:2px;color:#b7ab92;cursor:pointer;border:1px solid #3a4157;padding:6px 10px;background:rgba(7,10,20,.5)}
+#clues b{color:var(--amber);font-weight:normal}
+.toast{position:fixed;left:50%;bottom:9vh;transform:translateX(-50%);z-index:30;background:rgba(239,230,210,.96);color:var(--ink);padding:10px 16px;font-size:13px;letter-spacing:.5px;box-shadow:0 10px 30px rgba(0,0,0,.5);max-width:90vw}
+#zzz{left:0;top:0;opacity:0;transition:opacity .6s;font-family:'Playfair Display',serif;font-style:italic;font-size:26px;color:var(--paper);pointer-events:none;animation:zz 2.4s ease-in-out infinite}
+@keyframes zz{50%{margin-top:-10px;letter-spacing:4px}}
+#secret{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center}
+#secret .card{background:#efe6d2;color:var(--ink);padding:30px 34px;width:min(460px,90vw);box-shadow:0 30px 80px rgba(0,0,0,.7)}
+#secret h2{font-family:'Playfair Display',serif;margin:6px 0 12px}#secret p{font-size:15px;line-height:1.6}
+#secret button{font-family:inherit;background:var(--ink);color:var(--paper);border:0;padding:10px 18px;letter-spacing:2px;cursor:pointer}
+body.noir #cv{filter:grayscale(1) contrast(1.25) brightness(.95);animation:flick .12s steps(2) infinite}
+@keyframes flick{50%{filter:grayscale(1) contrast(1.3) brightness(1.02)}}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 </style>
 <script type="importmap">{"imports":{"three":"./lib/three.module.js","three/addons/":"./lib/addons/"}}</script>
@@ -90,6 +118,12 @@ button.btn:hover{background:var(--paper);color:var(--ink)}
 <div id="panel" class="ui"></div>
 <nav id="chapters" class="ui" aria-label="Chapters"></nav>
 <div id="next" class="ui">SCROLL · NEXT CLUE ↓</div>
+<div id="clues" class="ui" role="button" tabindex="0">CLUES <b>0/6</b></div>
+<div id="zzz" class="ui">z z z</div>
+<div id="secret"><div class="card"><small style="letter-spacing:2px">CLASSIFIED · FILE 007</small><h2>Off the record</h2>
+<p>You found every clue. That's exactly the kind of attention to detail I look for.</p>
+<p>Truth is, the detective's best thinking happens over a kulhad from Chai Thikana, and his favourite case is the one where someone says "it works on my machine".</p>
+<p>Born 26 December. If you're reading this, we should probably talk.</p><button>CLOSE THE FILE</button></div></div>
 <div id="credit" class="ui">Character model generated with Meshy AI · CC BY 4.0</div>
 <div id="tools" class="ui"><button id="mute">SOUND ON</button><button id="replay">REPLAY</button></div>
 <script src="./lib/gsap.min.js"></script>
