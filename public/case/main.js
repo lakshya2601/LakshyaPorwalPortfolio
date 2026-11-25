@@ -5,6 +5,7 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { loadDetective, POSE } from './detective.js';
+import { initChapters } from './chapters.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('cv');
@@ -220,6 +221,14 @@ function creak() {
   g.gain.setValueAtTime(0, ac.currentTime); g.gain.linearRampToValueAtTime(.07, ac.currentTime + .1); g.gain.linearRampToValueAtTime(0, ac.currentTime + 1.1);
   o.connect(f).connect(g).connect(master); o.start(); o.stop(ac.currentTime + 1.2);
 }
+function paper() {
+  if (!ac) return; const n = ac.createBuffer(1, ac.sampleRate * .35, ac.sampleRate), d = n.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+  const s = ac.createBufferSource(); s.buffer = n; const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 3000; f.Q.value = .6;
+  const g = ac.createGain(); g.gain.value = .25; s.connect(f).connect(g).connect(master); s.start();
+}
+function slide() { if (!ac) return; const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(70, ac.currentTime); o.frequency.linearRampToValueAtTime(50, ac.currentTime + .6);
+  const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 400; g.gain.setValueAtTime(.12, ac.currentTime); g.gain.linearRampToValueAtTime(0, ac.currentTime + .7); o.connect(f).connect(g).connect(master); o.start(); o.stop(ac.currentTime + .75); }
 function thud() { tick(90, .25, .5, 'sine'); tick(140, .12, .25, 'triangle'); }
 
 /* ---------------- story ---------------- */
@@ -233,7 +242,7 @@ function typeIt() {
   typer = setInterval(() => {
     $('type').textContent = BIO.slice(0, ++i);
     if (BIO[i - 1] && BIO[i - 1].trim() && i % 2) tick(2300 + Math.random() * 500, .018, .04);
-    if (i >= BIO.length) { clearInterval(typer); typing = false; gsap.to('#stamp', { opacity: 1, scale: 1, duration: .25, ease: 'power4.in', onComplete: thud }); }
+    if (i >= BIO.length) { clearInterval(typer); typing = false; gsap.to('#stamp', { opacity: 1, scale: 1, duration: .25, ease: 'power4.in', onComplete: () => { thud(); setTimeout(() => chapters.start(), 700); } }); }
   }, 34);
 }
 function flickOn() {
@@ -262,6 +271,7 @@ function enter() {
 }
 $('enter').onclick = enter;
 $('replay').onclick = () => {
+  chapters.reset(); gsap.killTweensOf(shot);
   clearInterval(typer); gsap.killTweensOf(shot); Object.assign(shot, START);
   lamp.v = 0; headDown = 1; S.fog.density = .055; state = 'street';
   gsap.set('#note', { opacity: 0, y: 16 }); gsap.set('#stamp', { opacity: 0, scale: 2 }); gsap.set(['#hint', '#tools'], { opacity: 0 });
@@ -269,6 +279,7 @@ $('replay').onclick = () => {
 };
 $('mute').onclick = () => { muted = !muted; if (master) master.gain.value = muted ? 0 : 1; $('mute').textContent = muted ? 'SOUND OFF' : 'SOUND ON'; };
 gsap.set('#note', { y: 16 });
+const chapters = initChapters({ THREE, S, cam, shot, gsap, R, sfx: { tick, thud, paper, slide } });
 { const d = new Date(); $('clock').textContent = d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }).toUpperCase(); }
 
 let mx = 0, my = 0, smx = 0, smy = 0;
@@ -318,4 +329,4 @@ function loop() {
   comp.render(); requestAnimationFrame(loop);
 }
 loop();
-window.__case = { shot, lamp, S, cam, det, POSE, setState: (s) => { state = s; }, head: (h) => { headDown = h; } };
+window.__case = { shot, lamp, S, cam, det, POSE, chapters, setState: (s) => { state = s; }, head: (h) => { headDown = h; } };
