@@ -49,44 +49,29 @@ export function initRain({ sfx, ac, snapshot }) {
     };
   }
 
-  /* ---------------- rotary phone ---------------- */
-  const C = 210, R_HOLE = 150, STOP = 62; // degrees, clockwise from 3 o'clock
+  /* ---------------- rotary phone (photo-real Blender renders, layered) ---------------- */
+  const STOP = 62; // finger stop, degrees clockwise from 3 o'clock
   const holeAngle = (k) => STOP - 30 * (k + 1.15); // k: 1..10 (10 = zero)
-  const pt = (a, r) => [C + r * Math.cos(a * Math.PI / 180), C + r * Math.sin(a * Math.PI / 180)];
-  let digitsSVG = '', holesSVG = '';
-  for (let k = 1; k <= 10; k++) {
-    const [x, y] = pt(holeAngle(k), R_HOLE);
-    digitsSVG += `<text x="${x}" y="${y + 9}" text-anchor="middle" font-family="Georgia,serif" font-size="26" fill="#1d1813">${k % 10}</text>`;
-    holesSVG += `<g class="hole" data-k="${k}"><circle cx="${x}" cy="${y}" r="27" fill="rgba(0,0,0,0)" stroke="#b9bcbf" stroke-width="3"/></g>`;
-  }
-  const [sx, sy] = pt(STOP, 188), [sx2, sy2] = pt(STOP, 140);
   const phone = el(`<div class="rg-layer" id="rg-phone"><div class="rg-phone">
     <div class="rg-strip rg-paper"><small>YOU DIALED</small><span class="num">—</span></div>
-    <svg class="rg-dial" viewBox="0 0 420 420" aria-label="Rotary phone dial">
-      <defs>
-        <radialGradient id="bk" cx="40%" cy="35%"><stop offset="0" stop-color="#3a3a3c"/><stop offset=".7" stop-color="#121214"/><stop offset="1" stop-color="#050506"/></radialGradient>
-        <radialGradient id="cr" cx="35%" cy="30%"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#c9ccd0"/><stop offset="1" stop-color="#7d8287"/></radialGradient>
-        <radialGradient id="ivory" cx="45%" cy="40%"><stop offset="0" stop-color="#fbf6ea"/><stop offset="1" stop-color="#dcd2bd"/></radialGradient>
-        <mask id="holes"><rect width="420" height="420" fill="#fff"/>${Array.from({ length: 10 }, (_, i) => { const [x, y] = pt(holeAngle(i + 1), R_HOLE); return `<circle cx="${x}" cy="${y}" r="27" fill="#000"/>`; }).join('')}</mask>
-      </defs>
-      <circle cx="210" cy="210" r="206" fill="url(#bk)"/>
-      <circle cx="210" cy="210" r="186" fill="url(#ivory)"/>
-      ${digitsSVG}
-      <g class="wheel">
-        <circle cx="210" cy="210" r="184" fill="url(#cr)" mask="url(#holes)" opacity=".96"/>
-        <circle cx="210" cy="210" r="184" fill="none" stroke="#5f6468" stroke-width="2"/>
-        ${holesSVG}
-        <circle cx="210" cy="210" r="86" fill="url(#ivory)" stroke="#8b8f93" stroke-width="3"/>
-        <text x="210" y="190" text-anchor="middle" font-family="'Special Elite',monospace" font-size="13" fill="#6b5a44">INDORE EXCHANGE</text>
-        <text x="210" y="216" text-anchor="middle" font-family="'Special Elite',monospace" font-size="17" fill="#1d1813">0731 · 2546 07</text>
-        <text x="210" y="240" text-anchor="middle" font-family="Caveat,cursive" font-size="20" fill="#2b3a67">detective's office</text>
-      </g>
-      <path d="M${sx} ${sy} L${sx2} ${sy2}" stroke="url(#cr)" stroke-width="12" stroke-linecap="round"/>
-    </svg>
+    <div class="rg-dial2" aria-label="Rotary phone dial">
+      <img class="base" src="./assets/props/dial_base.png" alt="">
+      <img class="wheel" src="./assets/props/dial_wheel.png" alt="">
+      <img class="cap" src="./assets/props/dial_cap.png" alt="">
+    </div>
     <div class="rg-said"></div>
     <div class="rg-btns"><button class="hang">HANG UP</button><button class="close">PUT THE PHONE DOWN</button></div>
   </div></div>`);
   document.body.appendChild(phone);
+  const dialBox = phone.querySelector('.rg-dial2');
+  dialBox.addEventListener('pointerdown', (e) => {
+    const b = dialBox.getBoundingClientRect(), x = (e.clientX - b.left) / b.width - .5, y = (e.clientY - b.top) / b.height - .5;
+    const r = Math.hypot(x, y) / (1 / 1.12); // normalise to image size (image is 1/1.12 of the box)
+    if (r < .23 || r > .4) return;
+    let ang = Math.atan2(y, x) * 180 / Math.PI; let best = 0, bd = 1e9;
+    for (let k = 1; k <= 10; k++) { let d = Math.abs(((ang - holeAngle(k)) % 360 + 540) % 360 - 180); if (d < bd) { bd = d; best = k; } }
+    if (bd < 14) { e.preventDefault(); dial(best); }
+  });
   const wheel = phone.querySelector('.wheel'), numEl = phone.querySelector('.num'), said = phone.querySelector('.rg-said');
   let dialed = '', spinning = false, onCall = null, callLock = false; const queue = [];
   const WRONG = [
@@ -102,9 +87,9 @@ export function initRain({ sfx, ac, snapshot }) {
     if (spinning) { queue.push(k); return; } spinning = true;
     const travel = 30 * (k + 1.15); // degrees to the finger stop
     sfx.tick(300, .03, .06, 'triangle');
-    gsap.to(wheel, { rotation: travel, svgOrigin: '210 210', duration: travel / 420, ease: 'power1.out', onComplete: () => {
+    gsap.to(wheel, { rotation: travel, duration: travel / 420, ease: 'power1.out', onComplete: () => {
       const ticks = k; let t = 0;
-      gsap.to(wheel, { rotation: 0, svgOrigin: '210 210', duration: travel / 300, ease: 'none', onUpdate() { const nt = Math.floor((1 - this.progress()) * -ticks + ticks); if (nt > t) { t = nt; clickSound(); } } , onComplete: () => {
+      gsap.to(wheel, { rotation: 0, duration: travel / 300, ease: 'none', onUpdate() { const nt = Math.floor((1 - this.progress()) * -ticks + ticks); if (nt > t) { t = nt; clickSound(); } } , onComplete: () => {
         spinning = false; dialed += String(k % 10); numEl.textContent = dialed.replace(/(\d{4})(\d{0,2})(\d{0,2})(\d{0,2})/, (m, a, b, c, d) => [a, b, c, d].filter(Boolean).join(' '));
         if (dialed.length === 10) { queue.length = 0; connect(); } else if (queue.length) dial(queue.shift());
       } });
@@ -123,14 +108,13 @@ export function initRain({ sfx, ac, snapshot }) {
     });
   }
   function resetDial() { dialed = ''; queue.length = 0; numEl.textContent = '—'; }
-  phone.querySelectorAll('.hole').forEach((h) => h.addEventListener('pointerdown', (e) => { e.preventDefault(); dial(+h.dataset.k); }));
   addEventListener('keydown', (e) => { if (phone.classList.contains('on') && /^[0-9]$/.test(e.key)) dial(e.key === '0' ? 10 : +e.key); });
   phone.querySelector('.hang').onclick = () => { if (spinning) return; sfx.tick(200, .1, .2, 'triangle'); resetDial(); said.textContent = ''; callLock = false; };
   phone.querySelector('.close').onclick = () => { phone.classList.remove('on'); resetDial(); said.textContent = ''; };
   function openPhone(cb) {
     onCall = cb; resetDial(); said.innerHTML = 'Click a number on the dial (or type it). The dial turns and clicks back, like the real thing.';
     phone.classList.add('on'); sfx.tick(260, .12, .25, 'triangle');
-    gsap.fromTo(phone.querySelector('.rg-dial'), { scale: .85, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.6)' });
+    gsap.fromTo(phone.querySelector('.rg-dial2'), { scale: .85, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.6)' });
   }
 
   /* ---------------- vault keypad ---------------- */
