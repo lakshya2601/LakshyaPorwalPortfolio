@@ -14,27 +14,27 @@ export function initRain({ sfx, ac, snapshot }) {
     <div class="tab">CASE FILE #001</div>
     <div class="rg-left rg-paper">
       <div class="rg-clip"></div>
-      <div class="rg-polaroid"><img alt="The street outside the office, raining"><div class="cap">outside the office · 3:07 am</div></div>
-      <div class="rg-note">"Nobody looks inside a safe that's behind a map."</div>
+      <div class="rg-polaroid"><img alt="The street outside the office, raining"><div class="cap">outside the office · 3:12 am</div></div>
+      <div class="rg-note">"He always shares his location with me. Tonight it just stopped." — Asha</div>
       <div class="rg-ring"></div>
     </div>
     <div class="rg-right rg-paper">
       <div class="rg-stamp">CONFIDENTIAL</div>
       <div class="rg-meta"><span>INDORE · M.P.</span><span>${new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase()}</span></div>
       <h1>The Rain Doesn't Stop</h1>
-      <p>3:07 AM. It has been raining in Indore for nine days straight.</p>
-      <p>You are a detective. You just woke up at your desk with a bump on your head and <b>no memory</b> of the last few hours.</p>
-      <p>A man called <b>${CASE.missing}</b> is missing. Someone is looking for him. Someone is going to lie to you tonight.</p>
-      <p><b>Your goal: find ${CASE.missing} before they do.</b></p>
+      <p>3:12 AM. Nine days of rain in Indore.</p>
+      <p><b>Rakesh Mehra</b>, a reporter at the <i>Indore Evening Post</i>, was chasing a story about fake jeeravan masala. At 11:47 PM he vanished.</p>
+      <p>His wife <b>Asha</b> went to the last location his phone shared and found his bag. She left everything on your desk, with her phone. At 2:15 AM the kidnappers called her.</p>
+      <p><b>Find where they are holding him before sunrise.</b></p>
       <div class="rg-how">
         <div><i>◎</i>LOOK<br>move your mouse</div>
-        <div><i>⌕</i>INSPECT<br>click what catches your eye</div>
-        <div><i>♪</i>LISTEN<br>the voices notice things</div>
-        <div><i>◐</i>RISK<br>some moves need a coin flip</div>
+        <div><i>⌕</i>INSPECT<br>hover, then click</div>
+        <div><i>♪</i>LISTEN<br>to what's behind the voice</div>
         <div><i>☎</i>DIAL<br>the old phone works</div>
+        <div><i>⌖</i>PIN<br>mark the map</div>
       </div>
       <button class="rg-take">TAKE THE CASE</button>
-      <div class="rg-sub">best with headphones · about 4 minutes</div>
+      <div class="rg-sub">best with headphones · about 5 minutes</div>
     </div></div></div>`);
   document.body.appendChild(brief);
 
@@ -73,7 +73,7 @@ export function initRain({ sfx, ac, snapshot }) {
     if (bd < 14) { e.preventDefault(); dial(best); }
   });
   const wheel = phone.querySelector('.wheel'), numEl = phone.querySelector('.num'), said = phone.querySelector('.rg-said');
-  let dialed = '', spinning = false, onCall = null, callLock = false; const queue = [];
+  let dialed = '', spinning = false, onCall = null, opts = null, callLock = false; const queue = [];
   const WRONG = [
     'A sleepy voice: "Hello? This is Sarafa Sweets. We are closed, bhaiya. Try at 9."',
     'An auntie: "Arre, wrong number. And why are you calling at 3 in the morning?"',
@@ -99,8 +99,9 @@ export function initRain({ sfx, ac, snapshot }) {
     callLock = true; said.innerHTML = '<em>ringing…</em>';
     ringTone(2, () => {
       let line, who;
-      if (dialed === CASE.number) { who = 'mehra'; line = `<em>A frightened whisper:</em> "Detective? Thank God, it's me, Mehra. Listen carefully. The woman calling you is NOT my daughter. The proof is in your safe, behind the map. The PIN is the time they broke in. Look at your clock."`; }
-      else if (dialed === CASE.press) { who = 'press'; line = `<em>A woman's voice, the same one that called you:</em> "Sharma Printing Press… hello? …Hello?" She hangs up.`; }
+      if (opts && dialed === opts.number) { who = opts.who; line = opts.right; }
+      else if (/^1987\d{0,4}60$/.test(dialed) && dialed.length < 10) { who = 'short'; line = '<em>A recorded voice:</em> "The number you have dialled does not exist." Too few digits. Something is missing from the middle.'; }
+      else if (dialed === CASE.press) { who = 'press'; line = `<em>The night desk, Indore Evening Post:</em> "Rakesh? He filed nothing tonight. If you find him, tell him the editor is worried."`; }
       else { who = 'wrong'; line = WRONG[Math.floor(Math.random() * WRONG.length)]; }
       said.innerHTML = line; sfx.tick(900, .04, .1);
       onCall?.(who, dialed);
@@ -111,8 +112,8 @@ export function initRain({ sfx, ac, snapshot }) {
   addEventListener('keydown', (e) => { if (phone.classList.contains('on') && /^[0-9]$/.test(e.key)) dial(e.key === '0' ? 10 : +e.key); });
   phone.querySelector('.hang').onclick = () => { if (spinning) return; sfx.tick(200, .1, .2, 'triangle'); resetDial(); said.textContent = ''; callLock = false; };
   phone.querySelector('.close').onclick = () => { phone.classList.remove('on'); resetDial(); said.textContent = ''; };
-  function openPhone(cb) {
-    onCall = cb; resetDial(); said.innerHTML = 'Click a number on the dial (or type it). The dial turns and clicks back, like the real thing.';
+  function openPhone(cb, o) {
+    onCall = cb; opts = o || null; resetDial(); said.innerHTML = 'Click a number on the dial (or type it). The dial turns and clicks back, like the real thing.';
     phone.classList.add('on'); sfx.tick(260, .12, .25, 'triangle');
     gsap.fromTo(phone.querySelector('.rg-dial2'), { scale: .85, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.6)' });
   }

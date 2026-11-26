@@ -44,8 +44,8 @@ export function buildEvidence(THREE, S, manager) {
     group.add(o); items[id] = o;
   });
   model('phone', 'rotary_phone.glb', -.98, -4.92, .35, 1.15, .823);
-  model('watch', 'watch.glb', .33, -4.24, .8, 1.2);
-  model('asha', 'asha_phone.glb', .47, -4.36, -.25, 1.1);
+  model('watch', 'watch.glb', .19, -4.2, .8, 1.2);
+  model('asha', 'asha_phone.glb', -.5, -4.19, .35, 1.1);
   // warm light from the banker's lamp onto the papers (live, with soft shadows)
   const deskLight = new THREE.SpotLight(0xffb066, 0, 3.2, .95, .7, 1.5);
   deskLight.position.set(.78, 1.16, -4.72); deskLight.target.position.set(-.25, .82, -4.5);
