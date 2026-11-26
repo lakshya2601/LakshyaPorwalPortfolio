@@ -257,24 +257,12 @@ sh.scale = (1, 1, .75); bpy.ops.object.transform_apply(scale=True)
 sol = sh.modifiers.new('s', 'SOLIDIFY'); sol.thickness = .006
 smooth(sh); sh.data.materials.append(M['shade']); objs.append(sh); reg(sh)
 lampShade = sh
-# typewriter
-TX, TY = .1, DY + .05
-box('twBody', (.48, .34, .12), (TX, TY, .9), M['black'], .03)
-box('twTop', (.42, .22, .06), (TX, TY + .04, .985), M['black'], .025)
-cyl('twPlaten', .04, .52, (TX, TY + .14, 1.03), M['rubber'], 20, rot=(0, math.pi / 2, 0))
-for i in (-1, 1):
-    cyl('twKnob', .03, .03, (TX + i * .275, TY + .14, 1.03), M['chrome'], 16, rot=(0, math.pi / 2, 0))
-box('twPaper', (.22, .002, .2), (TX, TY + .17, 1.13), M['paper'], 0, rot=(-.2, 0, 0))
-for r in range(4):
-    for c in range(9):
-        cyl('key', .013, .02, (TX - .16 + c * .04 + r * .01, TY - .13 + r * .035, .965 + r * .012), M['chrome'] if r == 0 else M['paper'], 10, bevel=0)
+# typewriter: detailed live model (separate object; casts shadows into the bake, exported on its own)
+import sys; sys.path.insert(0, OUT); import typewriter_model
+TW = typewriter_model.build(.1, DY + .05, .826)
 # (desk papers and the phone are now live props in the game)
 k = cyl('kulhad', .045, .09, (.62, DY - .3, .875), M['clay'], 24, r2=.035)
 cyl('chaiSurface', .038, .004, (.62, DY - .3, .915), M['chai'], 24, bevel=0)
-# fedora on desk
-cyl('hatBrim', .24, .015, (-.95, DY - .25, .84), M['hat'], 40, bevel=.006)
-c = cyl('hatCrown', .145, .16, (-.95, DY - .25, .925), M['hat'], 32, r2=.12, bevel=.02)
-cyl('hatBand', .148, .035, (-.95, DY - .25, .87), M['black'], 32, bevel=0)
 
 # ---- chair
 CY = 5.45
@@ -326,6 +314,10 @@ cyl('rackFoot', .22, .04, (RX, RY, .02), M['woodDark'], 24, r2=.18)
 for a in range(4):
     ang = a * math.pi / 2 + .4
     box('rackHook', (.16, .02, .02), (RX + math.cos(ang) * .08, RY + math.sin(ang) * .08, 1.82), M['woodDark'], .006, rot=(0, -.5, ang))
+# fedora hanging on the rack
+cyl('hatBrim', .24, .015, (RX + .13, RY - .02, 1.7), M['hat'], 40, rot=(.15, -1.2, 0), bevel=.006)
+cyl('hatCrown', .145, .16, (RX + .2, RY - .02, 1.72), M['hat'], 32, rot=(.15, -1.2, 0), r2=.12, bevel=.02)
+cyl('hatBand', .148, .035, (RX + .155, RY - .02, 1.705), M['black'], 32, rot=(.15, -1.2, 0), bevel=0)
 cyl('umbrella', .025, .9, (RX + .15, RY + .1, .45), M['black'], 10, rot=(0, .1, 0))
 # ---- wall clock & diploma
 cyl('clockRim', .2, .05, (-1.6, 7.47, 2.55), M['woodDark'], 40, rot=(math.pi / 2, 0, 0))

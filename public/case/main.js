@@ -10,6 +10,7 @@ import { initEggs } from './eggs.js';
 import { initGame } from './game.js';
 import { initRain } from './rain.js';
 import { buildEvidence } from './evidence.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('cv');
@@ -66,6 +67,30 @@ function bakedMat(albedo, lmOn, lmOff, exposure = 1) {
 /* ---------------- world ---------------- */
 const world = { neonMats: [], ready: false };
 const gl = new GLTFLoader(manager);
+// a dim office reflection map so enamel and chrome have something to reflect
+const officeEnv = (() => {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 256; const x = c.getContext('2d');
+  const g = x.createLinearGradient(0, 0, 0, 256); g.addColorStop(0, '#1a1410'); g.addColorStop(.5, '#3a2a1c'); g.addColorStop(.55, '#0f1a14'); g.addColorStop(1, '#070605'); x.fillStyle = g; x.fillRect(0, 0, 512, 256);
+  const lampSpot = (cx, cy, r, col) => { const rg = x.createRadialGradient(cx, cy, 0, cx, cy, r); rg.addColorStop(0, col); rg.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = rg; x.fillRect(0, 0, 512, 256); };
+  lampSpot(300, 70, 60, 'rgba(255,214,150,1)'); lampSpot(60, 110, 70, 'rgba(120,150,200,.55)'); lampSpot(420, 120, 40, 'rgba(255,90,140,.35)');
+  const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.colorSpace = THREE.SRGBColorSpace;
+  const pm = new THREE.PMREMGenerator(R); const e = pm.fromEquirectangular(t).texture; pm.dispose(); return e;
+})();
+const glm = new GLTFLoader(manager); glm.setMeshoptDecoder(MeshoptDecoder);
+glm.load(A + 'props/typewriter.glb', (g) => {
+  const tuned = new Set();
+  g.scene.traverse((o) => {
+    if (!o.isMesh) return; o.castShadow = true; o.receiveShadow = true; const m = o.material; if (tuned.has(m)) return; tuned.add(m);
+    m.envMap = officeEnv; m.envMapIntensity = .5;
+    // live lights here are tuned for the baked room; tone the metals and paper down so they don't bloom
+    if (m.metalness > .5) { m.color.multiplyScalar(.3); m.roughness = Math.max(m.roughness, .3); }
+    if (/paper/.test(m.name)) m.color.setScalar(.42);
+    if (/letter/.test(m.name)) m.color.multiplyScalar(.5);
+    if (m.clearcoat) { m.clearcoat = .18; m.clearcoatRoughness = .3; }
+    if (/keytop/.test(m.name)) { m.roughness = .3; m.clearcoat = .1; }
+  });
+  S.add(g.scene); world.typewriter = g.scene;
+});
 gl.load(A + 'office.glb', (g) => {
   const T = {
     ext: [tex('ext_albedo.jpg', true), tex('ext_on.png'), tex('ext_on.png')],
