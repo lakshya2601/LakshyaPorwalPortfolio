@@ -9,6 +9,7 @@ import { initChapters } from './chapters.js';
 import { initEggs } from './eggs.js';
 import { initPlay } from './play.js';
 import { initRain } from './rain.js';
+import { buildEvidence } from './evidence.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('cv');
@@ -294,12 +295,18 @@ const chapters = initChapters({ THREE, S, cam, shot, gsap, R, sfx: { tick, thud,
 const play = initPlay({ THREE, S, cam, gsap, chapters, sfx: { tick, thud, ring, door, step, slide },
   toTour: (hire) => { Object.assign(shot, { px: .1, py: 1.5, pz: -2.2, lx: 0, ly: 1.22, lz: -5.3 }); chapters.start(); if (hire) setTimeout(() => chapters.go(chapters.count() - 1), 300); else { gsap.to('#note', { opacity: 1, y: 0, duration: .8 }); typeIt(); } } });
 const eggs = initEggs({ THREE, S, cam, lamp, gsap, det, chapters, sfx: { tick, thud }, setHead: (h) => gsap.to({ h: headDown }, { h, duration: .8, onUpdate() { headDown = this.targets()[0].h; } }), getState: () => state, steam: (ms) => chapters.steam(ms) });
+const ev = buildEvidence(THREE, S, manager);
+function deskView() {
+  state = 'office'; lamp.v = 1; S.fog.density = .02; det.root.visible = false; $('street').style.display = 'none';
+  Object.assign(shot, { px: -.32, py: 1.5, pz: -3.62, lx: -.3, ly: .82, lz: -4.62 });
+}
 const rain = initRain({ sfx: { tick, thud, paper }, ac: () => ac, snapshot: () => { comp.render(); return R.domElement.toDataURL('image/jpeg', .85); } });
 if (new URLSearchParams(location.search).get('preview') === 'rain') {
   const bar = document.createElement('div'); bar.id = 'rg-dev';
-  bar.innerHTML = '<button data-a="b">BRIEFING</button><button data-a="p">PHONE</button><button data-a="v">VAULT</button>';
+  bar.innerHTML = '<button data-a="b">BRIEFING</button><button data-a="d">DESK</button><button data-a="p">PHONE</button><button data-a="v">VAULT</button>';
+  ev.show(true);
   document.body.appendChild(bar);
-  bar.onclick = (e) => { const a = e.target.dataset.a; audio(); if (a === 'b') rain.showBriefing(() => enter('tour')); if (a === 'p') rain.openPhone(); if (a === 'v') rain.openVault(); };
+  bar.onclick = (e) => { const a = e.target.dataset.a; audio(); if (a === 'b') rain.showBriefing(() => enter('tour')); if (a === 'p') rain.openPhone(); if (a === 'd') deskView(); if (a === 'v') rain.openVault(); };
 }
 { const d = new Date(); $('clock').textContent = d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }).toUpperCase(); }
 
@@ -347,9 +354,9 @@ function loop() {
   if (play.active) play.camera(dt); else {
   cam.position.set(shot.px + smx * .2 * sway, shot.py + smy * .08 * sway + Math.sin(t * .45) * .008, shot.pz);
   look.set(shot.lx + smx * .14, shot.ly, shot.lz); cam.lookAt(look); }
-  chapters.update(t); eggs.update();
+  chapters.update(t); eggs.update(); ev.update(lamp.v);
   $('grain').style.transform = `translate(${(Math.random() * 24) | 0}px,${(Math.random() * 24) | 0}px)`;
   comp.render(); requestAnimationFrame(loop);
 }
 loop();
-window.__case = { rain, shot, lamp, S, cam, det, POSE, chapters, play, enter, setState: (s) => { state = s; }, head: (h) => { headDown = h; } };
+window.__case = { rain, ev, deskView, shot, lamp, S, cam, det, POSE, chapters, play, enter, setState: (s) => { state = s; }, head: (h) => { headDown = h; } };

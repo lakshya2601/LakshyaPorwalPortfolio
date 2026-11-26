@@ -268,20 +268,7 @@ box('twPaper', (.22, .002, .2), (TX, TY + .17, 1.13), M['paper'], 0, rot=(-.2, 0
 for r in range(4):
     for c in range(9):
         cyl('key', .013, .02, (TX - .16 + c * .04 + r * .01, TY - .13 + r * .035, .965 + r * .012), M['chrome'] if r == 0 else M['paper'], 10, bevel=0)
-# files, papers, stamp, phone, kulhad
-for i in range(4):
-    box('folder', (.5, .36, .015), (-.5 + random.uniform(-.02, .02), DY - .1, .835 + i * .017), M['manila'], .002, rot=(0, 0, random.uniform(-.12, .12)))
-box('paperA', (.3, .42, .003), (.35, DY - .25, .828), M['paper'], 0, rot=(0, 0, -.3))
-box('paperB', (.3, .42, .003), (.42, DY - .2, .831), M['paper'], 0, rot=(0, 0, .15))
-cyl('stampHandle', .025, .09, (-.2, DY - .35, .88), M['woodDark'], 16)
-cyl('stampBase', .035, .02, (-.2, DY - .35, .835), M['rubber'], 16)
-# rotary phone
-PX, PY = -.75, DY + .25
-box('phoneBody', (.24, .26, .1), (PX, PY, .88), M['black'], .04)
-box('handset', (.3, .07, .05), (PX, PY, .96), M['black'], .02)
-for s in (-1, 1):
-    sph('earpiece', .045, (PX + s * .13, PY, .95), M['black'], (1, 1, .7), 16)
-cyl('dial', .07, .012, (PX, PY - .1, .91), M['chrome'], 24, rot=(.9, 0, 0))
+# (desk papers and the phone are now live props in the game)
 k = cyl('kulhad', .045, .09, (.62, DY - .3, .875), M['clay'], 24, r2=.035)
 cyl('chaiSurface', .038, .004, (.62, DY - .3, .915), M['chai'], 24, bevel=0)
 # fedora on desk
