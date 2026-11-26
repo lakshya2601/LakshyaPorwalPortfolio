@@ -40,7 +40,8 @@ export function buildEvidence(THREE, S, manager) {
   const gl = new GLTFLoader(manager); gl.setMeshoptDecoder(MeshoptDecoder);
   const model = (id, file, x, z, ry, s = 1, y = TOP) => gl.load(P + file, (g) => {
     const o = g.scene; o.position.set(x, y, z); o.rotation.y = ry; o.scale.setScalar(s);
-    o.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; c.userData.id = id; if (c.material.map) c.material.map.anisotropy = 8; } });
+    o.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; c.userData.id = id; if (c.material.map) c.material.map.anisotropy = 8;
+      if (id === 'watch') { const m = c.material; m.roughness = Math.max(m.roughness, .38); if (m.metalness > .5) m.color.multiplyScalar(.45); if (m.transparent) m.opacity = Math.min(m.opacity, .2); else if (m.metalness < .5) m.color.multiplyScalar(.55); m.emissiveIntensity = 0; } } });
     group.add(o); items[id] = o;
   });
   model('phone', 'rotary_phone.glb', -.98, -4.92, .35, 1.15, .823);
