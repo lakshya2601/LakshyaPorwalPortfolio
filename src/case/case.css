@@ -1,13 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lakshya Porwal · Investigations</title>
-<meta name="description" content="Lakshya Porwal, AI/ML engineer in Indore. Case files: LLMs, RAG and MLOps in production.">
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Playfair+Display:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
-<style>
+
 :root{--paper:#efe6d2;--ink:#1a1612;--amber:#f2a541;--red:#c0392b;--night:#070a14}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--night);color:var(--paper);overflow:hidden;font-family:'Special Elite','Courier New',monospace}
 #cv{position:fixed;inset:0;width:100%;height:100%;display:block}
@@ -110,40 +101,3 @@ button.btn.primary{background:var(--paper);color:var(--ink)}button.btn.primary:h
 #pend .pbtns button{font-family:inherit;letter-spacing:2px;font-size:12px;padding:11px 14px;border:1px solid var(--ink);background:none;color:var(--ink);cursor:pointer}
 #pend .pbtns .phire{background:var(--ink);color:var(--paper)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-</style>
-<script type="importmap">{"imports":{"three":"./lib/three.module.js","three/addons/":"./lib/addons/"}}</script>
-</head>
-<body>
-<h1 class="sr">Lakshya Porwal, AI/ML engineer in Indore. A detective-themed portfolio.</h1>
-<canvas id="cv"></canvas>
-<div id="grain"></div><div id="vig"></div>
-<div id="loader" class="ui"><small>DEVELOPING THE FILM</small><div class="bar"><i id="lbar"></i></div></div>
-<div id="street" class="ui" style="opacity:0">
-<div class="meta">INDORE · <span id="clock">11:47 PM</span> · RAINING</div>
-<div class="btns"><button class="btn primary" id="play">PLAY DETECTIVE MODE</button><button class="btn" id="enter">TAKE THE TOUR</button></div>
-<div class="snd">best with sound on</div>
-</div>
-<div id="note" class="ui"><div class="card">
-<div class="hd"><span>CASE FILE 000</span><span>THE DETECTIVE</span></div>
-<h1>Lakshya Porwal</h1>
-<div id="type"></div>
-<div id="stamp">ON DUTY</div>
-</div></div>
-<div id="hint" class="ui">move your cursor · he's watching</div>
-<div id="panel" class="ui"></div>
-<nav id="chapters" class="ui" aria-label="Chapters"></nav>
-<div id="next" class="ui">SCROLL · NEXT CLUE ↓</div>
-<div id="zzz" class="ui">z z z</div>
-<div id="phud" class="ui"></div>
-<div id="subtitle" class="ui"></div>
-<div id="ptip" class="ui"></div>
-<div id="pend"><div class="card"><small>PARTNER PROFILE · CASE OF THE LYING MODEL</small><h2></h2><p class="pdesc"></p><p class="pmeta"></p>
-<p><b>The case you'd love most:</b> <span class="pcase"></span></p><p class="pnote">Lakshya works best with partners like you.</p>
-<div class="pstamp">CASE CLOSED</div>
-<div class="pbtns"><button class="phire">HIRE YOUR PARTNER</button><button class="pshare">SHARE</button><button class="ptour">TAKE THE TOUR</button></div></div></div>
-<div id="credit" class="ui">Character model generated with Meshy AI · CC BY 4.0</div>
-<div id="tools" class="ui"><button id="mute">SOUND ON</button><button id="replay">REPLAY</button></div>
-<script src="./lib/gsap.min.js"></script>
-<script type="module" src="./main.js"></script>
-</body>
-</html>

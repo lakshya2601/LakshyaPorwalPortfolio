@@ -3,7 +3,7 @@
 export function buildScenes2(THREE, S) {
   const tex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); draw(x, w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return { t, c, x }; };
   const std = (c, r = .6, m = 0) => new THREE.MeshStandardMaterial({ color: c, roughness: r, metalness: m });
-  const shadowy = (g) => g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  const shadowy = (g) => g.traverse((o: any) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
 
   /* ---- surveillance cart with 4 CRT monitors (right-front corner) ---- */
   const cart = new THREE.Group(); cart.position.set(2.6, 0, -1.4); cart.rotation.y = -2.39; S.add(cart);

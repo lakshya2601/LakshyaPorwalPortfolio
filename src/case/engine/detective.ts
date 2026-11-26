@@ -1,15 +1,15 @@
 // The detective: Lakshya's stylized character (Meshy, CC BY 4.0), Mixamo skeleton.
 // Posed procedurally: seated at the desk, hands on the typewriter, head follows the cursor.
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 export function loadDetective(THREE, manager, url, POSE) {
   const root = new THREE.Group();
-  const api = { root, ready: false, update() {} };
+  const api: any = { root, ready: false, update() {} };
   const loader = new GLTFLoader(manager); loader.setMeshoptDecoder(MeshoptDecoder);
   loader.load(url, (g) => {
     const model = g.scene; root.add(model);
-    model.traverse((o) => {
+    model.traverse((o: any) => {
       if (o.isMesh) {
         o.castShadow = true; o.receiveShadow = true; o.frustumCulled = false;
         const m = o.material; m.side = THREE.FrontSide; m.envMapIntensity = .4;
@@ -17,7 +17,7 @@ export function loadDetective(THREE, manager, url, POSE) {
       }
     });
     const bones = {};
-    model.traverse((o) => { if (o.isBone) bones[o.name.replace('mixamorig:', '').replace('mixamorig', '')] = o; });
+    model.traverse((o: any) => { if (o.isBone) bones[o.name.replace('mixamorig:', '').replace('mixamorig', '')] = o; });
     const b = (n) => bones[n];
     const tmpQ = new THREE.Quaternion(), pq = new THREE.Quaternion(), ax = new THREE.Vector3();
     // rotate a bone around a WORLD axis (keeps code readable regardless of bone-local axes)
