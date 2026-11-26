@@ -1,11 +1,12 @@
+import { animate, stagger } from 'animejs';
 // THE RAIN DOESN'T STOP — first-person case at the detective's desk.
 // Asha Mehra brought everything she found where her husband Rakesh's phone last pinged.
 // Find where the kidnappers are keeping him before sunrise.
 export function initGame(ctx) {
   const { THREE, S, cam, gsap, sfx, ac, master, ev, rain, lamp } = ctx;
   const $ = (id) => document.getElementById(id);
-  const el = (h) => { const d = document.createElement('div'); d.innerHTML = h.trim(); return d.firstElementChild; };
-  const P = './assets/props/';
+  const el = (h: string): HTMLElement => { const d = document.createElement('div'); d.innerHTML = h.trim(); return d.firstElementChild as HTMLElement; };
+  const P = '/case/assets/props/';
 
   /* ---------------- UI shell ---------------- */
   const ui = el(`<div id="gm">
@@ -21,9 +22,9 @@ export function initGame(ctx) {
     <div class="gm-guide"><i></i><span></span></div>
   </div>`);
   document.body.appendChild(ui);
-  const objList = ui.querySelector('.gm-obj ol'), info = ui.querySelector('.gm-info'), sub = ui.querySelector('.gm-sub'), toastEl = ui.querySelector('.gm-toast');
-  const inspect = ui.querySelector('.gm-inspect'), card = ui.querySelector('.gm-card'), rec = ui.querySelector('.gm-rec'), pinUI = ui.querySelector('.gm-pin'), endUI = ui.querySelector('.gm-end');
-  const btnBoard = ui.querySelector('.gm-board'), btnMap = ui.querySelector('.gm-map');
+  const objList = ui.querySelector<HTMLElement>('.gm-obj ol'), info = ui.querySelector<HTMLElement>('.gm-info'), sub = ui.querySelector<HTMLElement>('.gm-sub'), toastEl = ui.querySelector<HTMLElement>('.gm-toast');
+  const inspect = ui.querySelector<HTMLElement>('.gm-inspect'), card = ui.querySelector<HTMLElement>('.gm-card'), rec = ui.querySelector<HTMLElement>('.gm-rec'), pinUI = ui.querySelector<HTMLElement>('.gm-pin'), endUI = ui.querySelector<HTMLElement>('.gm-end');
+  const btnBoard = ui.querySelector<HTMLElement>('.gm-board'), btnMap = ui.querySelector<HTMLButtonElement>('.gm-map');
 
   const OBJ = [
     { id: 'listen', t: 'Listen to the ransom call on Asha\'s phone' },
@@ -33,7 +34,7 @@ export function initGame(ctx) {
   ];
   const done = new Set();
   function renderObj() { objList.innerHTML = OBJ.map((o) => `<li class="${done.has(o.id) ? 'ok' : ''}">${o.t}</li>`).join(''); }
-  function complete(id) { if (done.has(id)) return; done.add(id); renderObj(); sfx.tick(1200, .08, .12, 'triangle'); if (id === 'call') { btnMap.disabled = false; toast('Now mark the map: where is Rakesh?'); } }
+  function complete(id) { if (done.has(id)) return; done.add(id); renderObj(); const li = objList.children[OBJ.findIndex((o) => o.id === id)]; if (li) animate(li, { x: [0, 6, 0], duration: 500, ease: 'outElastic(1, .5)' }); sfx.tick(1200, .08, .12, 'triangle'); if (id === 'call') { btnMap.disabled = false; toast('Now mark the map: where is Rakesh?'); } }
   function toast(t, ms = 3200) { toastEl.textContent = t; gsap.killTweensOf(toastEl); gsap.fromTo(toastEl, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: .35 }); gsap.to(toastEl, { opacity: 0, delay: ms / 1000, duration: .6 }); }
   let subT; function say(who, text, ms = 5200) {
     sub.innerHTML = `<b>${who}</b> ${text}`; gsap.killTweensOf(sub); gsap.to(sub, { opacity: 1, duration: .3 }); clearTimeout(subT); subT = setTimeout(() => gsap.to(sub, { opacity: 0, duration: .5 }), ms);
@@ -68,7 +69,7 @@ export function initGame(ctx) {
   }
 
   /* ---------------- items: what you learn from each ---------------- */
-  const ITEMS = {
+  const ITEMS: Record<string, any> = {
     asha: { k: 'ASHA\'S PHONE', t: 'The ransom call', d: 'Asha recorded the call that came at 2:15 AM. Her phone records every call automatically.', v: 'GUT: "Listen past the voice. Kidnappers forget the world behind them."', open: () => openRecording() },
     watch: { k: 'EVIDENCE', t: 'Rakesh\'s wristwatch', d: 'Found by Asha on the road near Chhoti Gwaltoli, where his phone last pinged. The glass is cracked. It stopped at 11:47.', v: 'LOGIC: "11:47 PM. That\'s when they took him."', img: 'watch', pin: ['TAKEN AT 11:47 PM', 'His watch broke in the struggle near Chhoti Gwaltoli, his last location.'] },
     story: { k: 'RAKESH\'S DRAFT', t: '"Sawdust in your poha"', d: 'His unpublished story: fake jeeravan masala, cut with sawdust and colour, packed at night in a godown near the railway line.', v: 'LOGIC: "Motive. Somebody did not want this printed."', img: 'story.jpg', pin: ['MOTIVE', 'Fake jeeravan packed at night in a godown near the railway line. Swad Masala Udyog.'] },
@@ -90,7 +91,7 @@ export function initGame(ctx) {
   const view = { ...HOME }; let mode = 'off', mx = 0, my = 0, sx = 0, sy = 0, hovered = null;
   addEventListener('pointermove', (e) => {
     if (mode === 'off') return; mx = e.clientX / innerWidth * 2 - 1; my = -(e.clientY / innerHeight * 2 - 1);
-    if (mode !== 'desk' || e.target.tagName !== 'CANVAS') { if (hovered) { hovered = null; showInfo(null); document.body.style.cursor = ''; } return; }
+    if (mode !== 'desk' || (e.target as HTMLElement).tagName !== 'CANVAS') { if (hovered) { hovered = null; showInfo(null); document.body.style.cursor = ''; } return; }
     const id = pick(e); if (id !== hovered) { hovered = id; showInfo(id); }
     document.body.style.cursor = id ? 'zoom-in' : '';
   });
@@ -102,12 +103,12 @@ export function initGame(ctx) {
   }
   function showInfo(id) {
     if (!id) { gsap.to(info, { opacity: 0, x: 20, duration: .25, overwrite: true }); return; }
-    const it = ITEMS[id]; info.querySelector('.gm-k').textContent = it.k; info.querySelector('h3').textContent = it.t;
-    info.querySelector('.gm-d').textContent = it.d; info.querySelector('.gm-v').textContent = it.v;
+    const it = ITEMS[id]; info.querySelector<any>('.gm-k').textContent = it.k; info.querySelector<any>('h3').textContent = it.t;
+    info.querySelector<any>('.gm-d').textContent = it.d; info.querySelector<any>('.gm-v').textContent = it.v;
     gsap.to(info, { opacity: 1, x: 0, duration: .3, overwrite: true }); sfx.tick(1500, .02, .04);
   }
   addEventListener('click', (e) => {
-    if (mode !== 'desk' || e.target.tagName !== 'CANVAS') return;
+    if (mode !== 'desk' || (e.target as HTMLElement).tagName !== 'CANVAS') return;
     const id = pick(e); if (!id) return; open(id);
   });
 
@@ -124,20 +125,20 @@ export function initGame(ctx) {
     card.innerHTML = id === 'watch'
       ? `<div class="wt"><img src="${P}watch_dial.png" alt=""><i class="h" style="transform:rotate(${(11 + 47 / 60) * 30}deg)"></i><i class="m" style="transform:rotate(${47 * 6}deg)"></i><img class="cr" src="${P}watch_crack.png" alt=""></div>`
       : `<img src="${src}" alt="${it.t}">`;
-    ui.querySelector('.gm-flip').style.display = it.back ? '' : 'none';
+    ui.querySelector<HTMLElement>('.gm-flip').style.display = it.back ? '' : 'none';
     inspect.classList.add('on'); gsap.fromTo(card, { y: 60, rotate: -6, opacity: 0, scale: .9 }, { y: 0, rotate: -1.5, opacity: 1, scale: 1, duration: .6, ease: 'power3.out' });
     say(it.v.split(':')[0] + ':', it.v.split(':').slice(1).join(':').trim(), 6000);
     if (!seen.has(id)) {
-      seen.add(id); if (it.pin) setTimeout(() => pinFinding(...it.pin), 900);
+      seen.add(id); if (it.pin) setTimeout(() => (pinFinding as any)(...it.pin), 900);
       const n = SEARCH.filter((s) => seen.has(s)).length; if (n >= 4) complete('search');
     }
   }
-  ui.querySelector('.gm-flip').onclick = () => {
+  ui.querySelector<HTMLElement>('.gm-flip').onclick = () => {
     const it = ITEMS[curItem]; flipped = !flipped; sfx.paper?.();
-    gsap.to(card, { rotateY: 90, duration: .2, onComplete: () => { card.querySelector('img').src = P + (flipped ? it.back : it.img); gsap.fromTo(card, { rotateY: -90 }, { rotateY: 0, duration: .25 }); } });
+    gsap.to(card, { rotateY: 90, duration: .2, onComplete: () => { card.querySelector<any>('img').src = P + (flipped ? it.back : it.img); gsap.fromTo(card, { rotateY: -90 }, { rotateY: 0, duration: .25 }); } });
     if (flipped && curItem === 'pressid') { say('GUT:', '"Follow the masala." He knew exactly who was after him.'); pinFinding('FOLLOW THE MASALA', 'Back of his press ID: "If I go missing, tell Asha: follow the masala."', '#1f4e79'); }
   };
-  ui.querySelector('.gm-close').onclick = closeInspect;
+  ui.querySelector<HTMLElement>('.gm-close').onclick = closeInspect;
   function closeInspect() { inspect.classList.remove('on'); mode = 'desk'; }
   addEventListener('keydown', (e) => { if (e.key === 'Escape' && mode === 'inspect') closeInspect(); });
 
@@ -161,18 +162,18 @@ export function initGame(ctx) {
       <button class="gp-close">GIVE THE PHONE BACK TO THE DESK</button></div>`;
     rec.classList.add('on'); gsap.fromTo(rec.firstElementChild, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: .5 });
     say('GUT:', '"Turn the voice down. Turn the world up."', 6000);
-    rec.querySelector('.gp-play').onclick = playRecording;
-    rec.querySelector('.gp-close').onclick = () => { rec.classList.remove('on'); mode = 'desk'; recPlaying = false; };
+    rec.querySelector<any>('.gp-play').onclick = playRecording;
+    rec.querySelector<any>('.gp-close').onclick = () => { rec.classList.remove('on'); mode = 'desk'; recPlaying = false; };
     renderHeard();
   }
   function renderHeard() {
-    const h = rec.querySelector('.gp-heard'); if (!h) return;
+    const h = rec.querySelector<any>('.gp-heard'); if (!h) return;
     const names = { horn: 'Train horn', chime: 'Platform 4 announcement', chai: 'Chai vendor', rain: 'Tin roof in the rain' };
     h.innerHTML = Object.keys(names).map((k) => `<span class="${heard.has(k) ? 'on' : ''}">${heard.has(k) ? '✓ ' : '… '}${names[k]}</span>`).join('');
   }
   function playRecording() {
-    if (recPlaying) return; recPlaying = true; const cap = rec.querySelector('.gp-cap'); const bars = rec.querySelectorAll('.gp-wave i');
-    const mv = () => +rec.querySelector('.mv').value / 100, mb = () => +rec.querySelector('.mb').value / 100;
+    if (recPlaying) return; recPlaying = true; const cap = rec.querySelector<any>('.gp-cap'); const bars = rec.querySelectorAll<HTMLElement>('.gp-wave i');
+    const mv = () => +rec.querySelector<any>('.mv').value / 100, mb = () => +rec.querySelector<any>('.mb').value / 100;
     const start = performance.now(); const A = ac(); const out = A ? A.createGain() : null; if (out) { out.connect(master()); }
     // rain bed on tin: filtered noise with tick rattle
     let bed; if (A) { const n = A.createBuffer(1, A.sampleRate * 11, A.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (Math.random() < .002 ? 4 : .6); bed = A.createBufferSource(); bed.buffer = n; const f = A.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 3200; f.Q.value = .7; const g = A.createGain(); g.gain.value = .0; bed.connect(f).connect(g).connect(out); bed.start(); bed.g = g; }
@@ -196,7 +197,7 @@ export function initGame(ctx) {
       }
       if (t < 11.2) requestAnimationFrame(tick);
       else {
-        recPlaying = false; bed?.stop(); const pb = rec.querySelector('.gp-play'); if (pb) pb.textContent = '↺  PLAY AGAIN';
+        recPlaying = false; bed?.stop(); const pb = rec.querySelector<any>('.gp-play'); if (pb) pb.textContent = '↺  PLAY AGAIN';
         if (heard.has('horn') && heard.has('chime')) {
           complete('listen'); pinFinding('NEAR INDORE JUNCTION', 'Ransom call background: train horn and the Platform 4 announcement.', '#1f4e79');
           say('LOGIC:', '"A train horn and a Platform 4 announcement. They are holding him right by Indore Junction. But where exactly?"', 7500);
@@ -231,7 +232,7 @@ export function initGame(ctx) {
       right: '<em>A gruff voice:</em> "Haan? Who is this… it\'s three in the morning." Behind him, clear as day: <em>a train horn</em>, then the chime: <em>"…platform number 4…"</em>. He hangs up.',
       who: 'godown',
     });
-    const closeBtn = document.querySelector('#rg-phone .close'); const prev = closeBtn.onclick;
+    const closeBtn = document.querySelector<any>('#rg-phone .close'); const prev = closeBtn.onclick;
     closeBtn.onclick = () => { prev?.(); mode = 'desk'; };
   }
 
@@ -243,13 +244,13 @@ export function initGame(ctx) {
     { id: 'godown', x: 55.4, y: 53.9, t: 'The godown behind Platform 4' },
   ];
   function openMap() {
-    if (!done.has('call')) { mode = 'inspect'; ITEMS.map.img = 'map.jpg'; card.className = 'gm-card wide'; card.innerHTML = `<img src="${P}map.jpg" alt="Indore map">`; ui.querySelector('.gm-flip').style.display = 'none'; inspect.classList.add('on'); say('LOGIC:', '"Not yet. Hear the call, go through his things, and check that godown line first."'); return; }
+    if (!done.has('call')) { mode = 'inspect'; ITEMS.map.img = 'map.jpg'; card.className = 'gm-card wide'; card.innerHTML = `<img src="${P}map.jpg" alt="Indore map">`; ui.querySelector<HTMLElement>('.gm-flip').style.display = 'none'; inspect.classList.add('on'); say('LOGIC:', '"Not yet. Hear the call, go through his things, and check that godown line first."'); return; }
     mode = 'inspect';
     pinUI.innerHTML = `<div class="gm-mapwrap"><img src="${P}map.jpg" alt="Indore map">${SPOTS.map((s) => `<button class="spot" data-id="${s.id}" style="left:${s.x}%;top:${s.y}%"><i></i><span>${s.t}</span></button>`).join('')}</div>
       <div class="gm-maphint">Where are they holding Rakesh? Push a pin into the map.</div><button class="gm-mapclose">NOT YET</button>`;
     pinUI.classList.add('on'); gsap.fromTo(pinUI.firstElementChild, { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: .5 });
-    pinUI.querySelectorAll('.spot').forEach((b) => b.onclick = () => choose(b.dataset.id, b));
-    pinUI.querySelector('.gm-mapclose').onclick = () => { pinUI.classList.remove('on'); mode = 'desk'; };
+    pinUI.querySelectorAll<HTMLElement>('.spot').forEach((b) => b.onclick = () => choose(b.dataset.id, b));
+    pinUI.querySelector<any>('.gm-mapclose').onclick = () => { pinUI.classList.remove('on'); mode = 'desk'; };
   }
   let wrong = 0;
   function choose(id, btn) {
@@ -270,16 +271,19 @@ export function initGame(ctx) {
       endUI.innerHTML = `<div class="gm-paper"><div class="np-mast">INDORE EVENING POST</div><div class="np-date">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).toUpperCase()} · SPECIAL DAWN EDITION</div>
         <h1>FAKE JEERAVAN RACKET BUSTED NEAR INDORE JUNCTION</h1><h2>Kidnapped reporter Rakesh Mehra rescued at dawn from a godown behind Platform 4</h2>
         <p>Police raided the Swad Masala Udyog godown at 5:40 AM after a tip from a private detective. Thousands of fake packets were seized. Mr. Mehra was found unharmed. "My wife never gave up," he said.</p>
-        <div class="np-case"><b>CASE CLOSED</b> in ${mm}:${ss} · ${pinned.length} findings on the board · ${wrong ? wrong + ' wrong pin' + (wrong > 1 ? 's' : '') : 'first pin, right pin'}</div>
+        <div class="np-stamp">RESCUED</div><div class="np-case"><b>CASE CLOSED</b> in ${mm}:${ss} · ${pinned.length} findings on the board · ${wrong ? wrong + ' wrong pin' + (wrong > 1 ? 's' : '') : 'first pin, right pin'}</div>
         <div class="np-btns"><button class="again">PLAY AGAIN</button><button class="tour">TAKE THE TOUR</button></div></div>`;
       endUI.classList.add('on'); gsap.fromTo(endUI.firstElementChild, { y: 80, rotate: -6, opacity: 0, scale: .9 }, { y: 0, rotate: -1, opacity: 1, scale: 1, duration: 1, ease: 'power3.out' });
-      endUI.querySelector('.again').onclick = () => { stop(); ctx.again(); };
-      endUI.querySelector('.tour').onclick = () => { stop(); ctx.toTour(); };
+      // anime.js: the stamp slams down, then the paper's lines settle in
+      animate(endUI.querySelector('.np-stamp'), { scale: [3, 1], opacity: [0, .85], rotate: [-28, -12], duration: 380, delay: 1100, ease: 'inQuart', onComplete: () => sfx.thud() });
+      animate(endUI.querySelectorAll('.gm-paper > h1, .gm-paper > h2, .gm-paper > p'), { opacity: [0, 1], y: [10, 0], delay: stagger(140, { start: 500 }), duration: 600, ease: 'outCubic' });
+      endUI.querySelector<any>('.again').onclick = () => { stop(); ctx.again(); };
+      endUI.querySelector<any>('.tour').onclick = () => { stop(); ctx.toTour(); };
     }, 3200);
   }
 
   /* ---------------- guide: a soft ring drifts to the next thing worth a look ---------------- */
-  const guide = ui.querySelector('.gm-guide'); let lastAct = performance.now(); const gv = new THREE.Vector3();
+  const guide = ui.querySelector<HTMLElement>('.gm-guide'); let lastAct = performance.now(); const gv = new THREE.Vector3();
   addEventListener('pointerdown', () => { lastAct = performance.now(); });
   function nextTarget() {
     if (!done.has('listen')) return ['asha', 'Start with the ransom call'];
@@ -293,7 +297,7 @@ export function initGame(ctx) {
     const [id, label] = nextTarget(); const o = ev.items[id]; if (!o) return;
     o.getWorldPosition(gv); gv.project(cam);
     guide.style.transform = `translate(${(gv.x * .5 + .5) * innerWidth}px,${(-gv.y * .5 + .5) * innerHeight}px)`;
-    guide.querySelector('span').textContent = label; guide.classList.add('on');
+    guide.querySelector<any>('span').textContent = label; guide.classList.add('on');
   }
 
   /* ---------------- start / stop ---------------- */

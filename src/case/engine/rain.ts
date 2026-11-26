@@ -1,3 +1,4 @@
+import gsap from 'gsap';
 // "The Rain Doesn't Stop" — briefing dossier, rotary phone and vault keypad.
 export const CASE = {
   city: 'Indore', number: '1987142160', press: '0731254611', pin: '1147',
@@ -5,9 +6,7 @@ export const CASE = {
 };
 
 export function initRain({ sfx, ac, snapshot }) {
-  const el = (h) => { const d = document.createElement('div'); d.innerHTML = h.trim(); return d.firstElementChild; };
-  const css = document.createElement('link'); css.rel = 'stylesheet'; css.href = './rain.css'; document.head.appendChild(css);
-  const font = document.createElement('link'); font.rel = 'stylesheet'; font.href = 'https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Share+Tech+Mono&display=swap'; document.head.appendChild(font);
+  const el = (h: string): HTMLElement => { const d = document.createElement('div'); d.innerHTML = h.trim(); return d.firstElementChild as HTMLElement; };
 
   /* ---------------- briefing ---------------- */
   const brief = el(`<div class="rg-layer" id="rg-brief"><div class="rg-folder rg-paper">
@@ -39,13 +38,13 @@ export function initRain({ sfx, ac, snapshot }) {
   document.body.appendChild(brief);
 
   function showBriefing(onTake) {
-    try { const src = snapshot?.(); if (src) brief.querySelector('img').src = src; } catch (e) { /* no snapshot */ }
+    try { const src = snapshot?.(); if (src) brief.querySelector<any>('img').src = src; } catch (e) { /* no snapshot */ }
     brief.classList.add('on'); sfx.paper?.();
-    gsap.fromTo(brief.querySelector('.rg-folder'), { y: 60, rotate: -6, opacity: 0 }, { y: 0, rotate: -.8, opacity: 1, duration: 1, ease: 'power3.out' });
-    gsap.fromTo(brief.querySelector('.rg-stamp'), { scale: 2.6, opacity: 0 }, { scale: 1, opacity: .82, duration: .3, delay: 1.1, ease: 'power4.in', onComplete: sfx.thud });
-    brief.querySelector('.rg-take').onclick = () => {
+    gsap.fromTo(brief.querySelector<any>('.rg-folder'), { y: 60, rotate: -6, opacity: 0 }, { y: 0, rotate: -.8, opacity: 1, duration: 1, ease: 'power3.out' });
+    gsap.fromTo(brief.querySelector<any>('.rg-stamp'), { scale: 2.6, opacity: 0 }, { scale: 1, opacity: .82, duration: .3, delay: 1.1, ease: 'power4.in', onComplete: sfx.thud });
+    brief.querySelector<any>('.rg-take').onclick = () => {
       sfx.paper?.();
-      gsap.to(brief.querySelector('.rg-folder'), { y: -40, opacity: 0, rotate: 3, duration: .6, ease: 'power2.in', onComplete: () => { brief.classList.remove('on'); onTake?.(); } });
+      gsap.to(brief.querySelector<any>('.rg-folder'), { y: -40, opacity: 0, rotate: 3, duration: .6, ease: 'power2.in', onComplete: () => { brief.classList.remove('on'); onTake?.(); } });
     };
   }
 
@@ -55,15 +54,15 @@ export function initRain({ sfx, ac, snapshot }) {
   const phone = el(`<div class="rg-layer" id="rg-phone"><div class="rg-phone">
     <div class="rg-strip rg-paper"><small>YOU DIALED</small><span class="num">—</span></div>
     <div class="rg-dial2" aria-label="Rotary phone dial">
-      <img class="base" src="./assets/props/dial_base.png" alt="">
-      <img class="wheel" src="./assets/props/dial_wheel.png" alt="">
-      <img class="cap" src="./assets/props/dial_cap.png" alt="">
+      <img class="base" src="/case/assets/props/dial_base.png" alt="">
+      <img class="wheel" src="/case/assets/props/dial_wheel.png" alt="">
+      <img class="cap" src="/case/assets/props/dial_cap.png" alt="">
     </div>
     <div class="rg-said"></div>
     <div class="rg-btns"><button class="hang">HANG UP</button><button class="close">PUT THE PHONE DOWN</button></div>
   </div></div>`);
   document.body.appendChild(phone);
-  const dialBox = phone.querySelector('.rg-dial2');
+  const dialBox = phone.querySelector<any>('.rg-dial2');
   dialBox.addEventListener('pointerdown', (e) => {
     const b = dialBox.getBoundingClientRect(), x = (e.clientX - b.left) / b.width - .5, y = (e.clientY - b.top) / b.height - .5;
     const r = Math.hypot(x, y) / (1 / 1.12); // normalise to image size (image is 1/1.12 of the box)
@@ -72,7 +71,7 @@ export function initRain({ sfx, ac, snapshot }) {
     for (let k = 1; k <= 10; k++) { let d = Math.abs(((ang - holeAngle(k)) % 360 + 540) % 360 - 180); if (d < bd) { bd = d; best = k; } }
     if (bd < 14) { e.preventDefault(); dial(best); }
   });
-  const wheel = phone.querySelector('.wheel'), numEl = phone.querySelector('.num'), said = phone.querySelector('.rg-said');
+  const wheel = phone.querySelector<any>('.wheel'), numEl = phone.querySelector<any>('.num'), said = phone.querySelector<any>('.rg-said');
   let dialed = '', spinning = false, onCall = null, opts = null, callLock = false; const queue = [];
   const WRONG = [
     'A sleepy voice: "Hello? This is Sarafa Sweets. We are closed, bhaiya. Try at 9."',
@@ -110,12 +109,12 @@ export function initRain({ sfx, ac, snapshot }) {
   }
   function resetDial() { dialed = ''; queue.length = 0; numEl.textContent = '—'; }
   addEventListener('keydown', (e) => { if (phone.classList.contains('on') && /^[0-9]$/.test(e.key)) dial(e.key === '0' ? 10 : +e.key); });
-  phone.querySelector('.hang').onclick = () => { if (spinning) return; sfx.tick(200, .1, .2, 'triangle'); resetDial(); said.textContent = ''; callLock = false; };
-  phone.querySelector('.close').onclick = () => { phone.classList.remove('on'); resetDial(); said.textContent = ''; };
-  function openPhone(cb, o) {
+  phone.querySelector<any>('.hang').onclick = () => { if (spinning) return; sfx.tick(200, .1, .2, 'triangle'); resetDial(); said.textContent = ''; callLock = false; };
+  phone.querySelector<any>('.close').onclick = () => { phone.classList.remove('on'); resetDial(); said.textContent = ''; };
+  function openPhone(cb?, o?) {
     onCall = cb; opts = o || null; resetDial(); said.innerHTML = 'Click a number on the dial (or type it). The dial turns and clicks back, like the real thing.';
     phone.classList.add('on'); sfx.tick(260, .12, .25, 'triangle');
-    gsap.fromTo(phone.querySelector('.rg-dial2'), { scale: .85, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.6)' });
+    gsap.fromTo(phone.querySelector<any>('.rg-dial2'), { scale: .85, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.6)' });
   }
 
   /* ---------------- vault keypad ---------------- */
@@ -126,7 +125,7 @@ export function initRain({ sfx, ac, snapshot }) {
     <div class="rg-vhint"></div></div>
     <div class="rg-btns" style="justify-content:center;margin-top:16px"><button class="close">STEP BACK</button></div></div></div>`);
   document.body.appendChild(vault);
-  const code = vault.querySelector('.code'), led = vault.querySelector('.rg-led'), vhint = vault.querySelector('.rg-vhint');
+  const code = vault.querySelector<any>('.code'), led = vault.querySelector<any>('.rg-led'), vhint = vault.querySelector<any>('.rg-vhint');
   let pin = '', tries = 0, onOpen = null;
   const beep = (f = 2200) => sfx.tick(f, .07, .12, 'square');
   function press(n) {
@@ -143,21 +142,21 @@ export function initRain({ sfx, ac, snapshot }) {
       setTimeout(() => { sfx.thud(); onOpen?.(); }, 700);
     } else {
       tries++; led.className = 'rg-led red'; code.textContent = 'ERR'; sfx.tick(140, .4, .25, 'sawtooth');
-      const v = vault.querySelector('.rg-vault'); v.classList.remove('rg-shake'); void v.offsetWidth; v.classList.add('rg-shake');
+      const v = vault.querySelector<any>('.rg-vault'); v.classList.remove('rg-shake'); void v.offsetWidth; v.classList.add('rg-shake');
       if (tries >= 3) vhint.textContent = 'GUT: "Something in this room stopped tonight."';
       setTimeout(() => { pin = ''; led.className = 'rg-led'; code.textContent = '----'; }, 900);
     }
   }
-  vault.querySelectorAll('.rg-keys button').forEach((b) => b.addEventListener('pointerdown', () => press(b.dataset.n)));
+  vault.querySelectorAll<HTMLElement>('.rg-keys button').forEach((b) => b.addEventListener('pointerdown', () => press(b.dataset.n)));
   addEventListener('keydown', (e) => {
     if (!vault.classList.contains('on')) return;
     if (/^[0-9]$/.test(e.key)) press(e.key); if (e.key === 'Enter') press('e'); if (e.key === 'Backspace') press('c');
   });
-  vault.querySelector('.close').onclick = () => vault.classList.remove('on');
-  function openVault(cb) {
+  vault.querySelector<any>('.close').onclick = () => vault.classList.remove('on');
+  function openVault(cb?) {
     onOpen = cb; pin = ''; tries = 0; led.className = 'rg-led'; code.textContent = '----'; vhint.textContent = '';
     vault.classList.add('on'); sfx.tick(180, .2, .3, 'triangle');
-    gsap.fromTo(vault.querySelector('.rg-vault'), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: .6, ease: 'power3.out' });
+    gsap.fromTo(vault.querySelector<any>('.rg-vault'), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: .6, ease: 'power3.out' });
   }
 
   return { showBriefing, openPhone, openVault, CASE };

@@ -1,5 +1,5 @@
 // Chapters after the intro: scroll / arrow keys / swipe / chapter list move the camera through the office.
-import { buildScenes2 } from './scenes2.js';
+import { buildScenes2 } from './scenes2';
 export function initChapters(ctx) {
   const { THREE, S, cam, shot, gsap, sfx, R } = ctx;
   const $ = (id) => document.getElementById(id);
@@ -8,7 +8,7 @@ export function initChapters(ctx) {
   /* ---------- 3D: evidence board cards + strings ---------- */
   const OZ = -7.5, BX = 1.6, BY = 2.05, BZ = OZ + .115;
   const board = new THREE.Group(); board.visible = false; S.add(board);
-  function cardTex(title, items, accent, w = 512, h = 384, photo) {
+  function cardTex(title, items, accent, w = 512, h = 384, photo?) {
     const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
     x.fillStyle = '#ede3cc'; x.fillRect(0, 0, w, h);
     for (let i = 0; i < 1500; i++) { x.fillStyle = `rgba(80,60,30,${Math.random() * .06})`; x.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
@@ -59,9 +59,9 @@ export function initChapters(ctx) {
   const fm = [0xc49a5b, 0xb88d4f, 0xd1a868].map((c) => new THREE.MeshStandardMaterial({ color: c, roughness: .9 }));
   for (let i = 0; i < 9; i++) { const f = new THREE.Mesh(new THREE.BoxGeometry(.5, .27, .008), fm[i % 3]); f.position.set(0, -.03, -.24 + i * .055); f.rotation.x = -.08; drawer.add(f); folders.push(f); }
   const archLight = new THREE.PointLight(0xffc890, 0, 3, 1.6); archLight.position.set(-2.75, 1.75, -6.3); S.add(archLight);
-  drawer.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+  drawer.traverse((o: any) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
 
-  const s2 = buildScenes2(THREE, S);
+  const s2: any = buildScenes2(THREE, S);
   /* ---------- chapters ---------- */
   const OFFICE = { px: .1, py: 1.5, pz: -2.2, lx: 0, ly: 1.22, lz: -5.3 };
   const CASES = [
@@ -88,7 +88,7 @@ export function initChapters(ctx) {
     },
   ];
   const DESK = { px: -.15, py: 2.05, pz: -3.7, lx: -.25, ly: .84, lz: -4.62 };
-  const CH = [
+  const CH: any[] = [
     { name: 'The detective', cam: OFFICE, html: null },
     {
       name: 'The letter', cam: { px: .05, py: 1.32, pz: -3.15, lx: .1, ly: .95, lz: -4.7 },
@@ -130,22 +130,22 @@ export function initChapters(ctx) {
         <textarea name="message" rows="4" placeholder="What's the case?" aria-label="Message"></textarea>
         <button type="submit">SLIDE IT UNDER THE DOOR</button><div class="msg" role="status"></div>
       </form>
-      <div class="links"><a href="mailto:lakshyap2601@gmail.com">EMAIL</a><a href="https://www.linkedin.com/in/lakshyap2601" target="_blank" rel="noopener">LINKEDIN</a><a href="https://github.com/lakshya2601" target="_blank" rel="noopener">GITHUB</a><a href="./assets/Lakshya_Porwal_Resume.pdf" target="_blank" rel="noopener">RESUME</a></div></div>`;
+      <div class="links"><a href="mailto:lakshyap2601@gmail.com">EMAIL</a><a href="https://www.linkedin.com/in/lakshyap2601" target="_blank" rel="noopener">LINKEDIN</a><a href="https://github.com/lakshya2601" target="_blank" rel="noopener">GITHUB</a><a href="/case/assets/Lakshya_Porwal_Resume.pdf" target="_blank" rel="noopener">RESUME</a></div></div>`;
   }
   function wireForm() {
-    const f = document.getElementById('tipform'); if (!f) return; const msg = f.querySelector('.msg');
+    const f = document.getElementById('tipform') as HTMLFormElement; if (!f) return; const msg = f.querySelector<any>('.msg');
     f.addEventListener('input', () => { msg.textContent = ''; msg.className = 'msg'; });
     f.onsubmit = async (e) => {
-      e.preventDefault(); const d = Object.fromEntries(new FormData(f));
+      e.preventDefault(); const d = Object.fromEntries(new FormData(f)) as Record<string, string>;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email || '')) { msg.textContent = 'Enter a valid email first.'; msg.className = 'msg err'; return; }
       if ((d.message || '').trim().length < 5) { msg.textContent = 'Write a short message first.'; msg.className = 'msg err'; return; }
-      const b = f.querySelector('button'); b.disabled = true; b.textContent = 'SLIDING…';
+      const b = f.querySelector<any>('button'); b.disabled = true; b.textContent = 'SLIDING…';
       try {
         const r = await fetch('/api/contact', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(d) });
         const j = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(j.error || 'Could not send.');
         f.innerHTML = '<div class="sent">Received. The detective is on it.</div>'; sfx.thud();
-      } catch (err) {
+      } catch (err: any) {
         msg.innerHTML = (err.message || 'Could not send.') + ' <a href="mailto:lakshyap2601@gmail.com">Email me directly.</a>'; msg.className = 'msg err';
         b.disabled = false; b.textContent = 'SLIDE IT UNDER THE DOOR';
       }
@@ -161,13 +161,13 @@ export function initChapters(ctx) {
       <div class="fstamp">SOLVED</div></div></div>`;
   }
   nav.innerHTML = CH.map((c, i) => `<button data-i="${i}"><em>${String(i + 1).padStart(2, '0')}</em><span>${c.name}</span></button>`).join('') ;
-  nav.querySelectorAll('button[data-i]').forEach((b) => (b.onclick = () => go(+b.dataset.i)));
+  nav.querySelectorAll<HTMLElement>('button[data-i]').forEach((b) => (b.onclick = () => go(+b.dataset.i)));
 
   let cur = 0, busy = false, active = false, alarmT;
   function go(i) {
     if (!active || busy || i === cur || i < 0 || i >= CH.length) return;
     busy = true; const prev = cur; cur = i;
-    nav.querySelectorAll('button').forEach((b, k) => b.classList.toggle('on', k === i));
+    nav.querySelectorAll<HTMLElement>('button').forEach((b, k) => b.classList.toggle('on', k === i));
     const same = CH[prev].case && CH[i].case;
     gsap.to(shot, { ...CH[i].cam, duration: same ? .6 : 2.2, ease: 'power2.inOut' });
     // panel
@@ -175,7 +175,7 @@ export function initChapters(ctx) {
       panel.className = 'ui ch' + i + (CH[i].case ? ' case' : '');
       panel.innerHTML = CH[i].html || ''; wireForm();
       if (CH[i].html) gsap.fromTo(panel, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: .8, delay: same ? 0 : 1.2, ease: 'power3.out', onStart: () => { if (CH[i].case || i === 1) sfx.paper(); } });
-      const st = panel.querySelector('.fstamp');
+      const st = panel.querySelector<any>('.fstamp');
       if (st) gsap.fromTo(st, { opacity: 0, scale: 2.4, rotate: -24 }, { opacity: 1, scale: 1, rotate: -12, duration: .28, delay: (same ? .5 : 1.8), ease: 'power4.in', onComplete: sfx.thud });
     } });
     gsap.to('#note', { opacity: i === 0 ? 1 : 0, duration: .5 });
@@ -218,8 +218,8 @@ export function initChapters(ctx) {
   addEventListener('touchend', (e) => { if (!active || ty == null) return; const d = ty - e.changedTouches[0].clientY; if (Math.abs(d) > 40) go(cur + Math.sign(d)); ty = null; }, { passive: true });
 
   return {
-    start() { active = true; cur = 0; nav.querySelector('button').classList.add('on'); gsap.to(['#chapters', '#next'], { opacity: 1, duration: 1 }); },
-    reset() { active = false; cur = 0; board.visible = false; drawer.position.z = -7.07; panel.innerHTML = ''; gsap.set(['#chapters', '#next', panel], { opacity: 0 }); nav.querySelectorAll('button').forEach((b) => b.classList.remove('on')); },
+    start() { active = true; cur = 0; nav.querySelector<any>('button').classList.add('on'); gsap.to(['#chapters', '#next'], { opacity: 1, duration: 1 }); },
+    reset() { active = false; cur = 0; board.visible = false; drawer.position.z = -7.07; panel.innerHTML = ''; gsap.set(['#chapters', '#next', panel], { opacity: 0 }); nav.querySelectorAll<HTMLElement>('button').forEach((b) => b.classList.remove('on')); },
     get index() { return cur; }, go, count: () => CH.length,
     update(t) { s2.update(t, { mon: !!CH[cur]?.mon || s2.forceMon }); },
     s2, openDrawer(o) { gsap.to(drawer.position, { z: o ? -6.68 : -7.07, duration: 1, ease: 'power3.out' }); gsap.to(archLight, { intensity: o ? 4.5 : 0, duration: .8 }); },

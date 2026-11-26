@@ -1,17 +1,17 @@
 // The evidence on the desk: Indore map with markings, Rakesh's papers, the soaked card, ticket, receipt,
 // press ID, fake jeeravan packet, his stopped wristwatch, Asha's phone and the office rotary phone.
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 
 export function buildEvidence(THREE, S, manager) {
-  const P = './assets/props/';
+  const P = '/case/assets/props/';
   const group = new THREE.Group(); group.visible = false; S.add(group);
   const tl = new THREE.TextureLoader(manager);
   const tex = (n) => { const t = tl.load(P + n); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; return t; };
   const TOP = .832;
-  const items = {};
+  const items: any = {};
   // paper with a gentle curl; w,h in metres; lies flat on the desk
-  function sheet(id, file, w, h, x, z, rot, lift = 0, curl = .006, opts = {}) {
+  function sheet(id, file, w, h, x, z, rot, lift = 0, curl = .006, opts: any = {}) {
     const g = new THREE.PlaneGeometry(w, h, 24, 24); const p = g.attributes.position;
     for (let i = 0; i < p.count; i++) {
       const u = p.getX(i) / w, v = p.getY(i) / h;
@@ -40,7 +40,7 @@ export function buildEvidence(THREE, S, manager) {
   const gl = new GLTFLoader(manager); gl.setMeshoptDecoder(MeshoptDecoder);
   const model = (id, file, x, z, ry, s = 1, y = TOP) => gl.load(P + file, (g) => {
     const o = g.scene; o.position.set(x, y, z); o.rotation.y = ry; o.scale.setScalar(s);
-    o.traverse((c) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; c.userData.id = id; if (c.material.map) c.material.map.anisotropy = 8;
+    o.traverse((c: any) => { if (c.isMesh) { c.castShadow = true; c.receiveShadow = true; c.userData.id = id; if (c.material.map) c.material.map.anisotropy = 8;
       if (id === 'watch') { const m = c.material; m.roughness = Math.max(m.roughness, .38); if (m.metalness > .5) m.color.multiplyScalar(.45); if (m.transparent) m.opacity = Math.min(m.opacity, .2); else if (m.metalness < .5) m.color.multiplyScalar(.55); m.emissiveIntensity = 0; } } });
     group.add(o); items[id] = o;
   });

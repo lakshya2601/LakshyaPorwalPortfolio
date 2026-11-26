@@ -1,16 +1,22 @@
+import gsap from 'gsap';
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { loadDetective, POSE } from './detective.js';
-import { initChapters } from './chapters.js';
-import { initEggs } from './eggs.js';
-import { initGame } from './game.js';
-import { initRain } from './rain.js';
-import { buildEvidence } from './evidence.js';
-import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { loadDetective, POSE } from './detective';
+import { initChapters } from './chapters';
+import { initEggs } from './eggs';
+import { initGame } from './game';
+import { initRain } from './rain';
+import { buildEvidence } from './evidence';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
+
+let booted = false;
+export function boot(): void {
+  if (booted) return; booted = true;
+  gsap.ticker.lagSmoothing(1500, 33); // keep UI animations on time on slow GPUs
 
 const $ = (id) => document.getElementById(id);
 const cv = $('cv');
@@ -26,8 +32,8 @@ const cam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.05, 80);
 const manager = new THREE.LoadingManager();
 manager.onProgress = (_u, a, b) => { $('lbar').style.width = (a / b * 100) + '%'; };
 const texL = new THREE.TextureLoader(manager);
-const A = './assets/';
-function tex(name, srgb) {
+const A = '/case/assets/';
+function tex(name, srgb?) {
   const t = texL.load(A + name); t.flipY = false; t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
   t.anisotropy = R.capabilities.getMaxAnisotropy(); return t;
 }
@@ -39,7 +45,7 @@ function bakedMat(albedo, lmOn, lmOff, exposure = 1) {
   const u = {
     albedo: { value: albedo }, lmOn: { value: lmOn }, lmOff: { value: lmOff },
     k: { value: 0 }, exposure: { value: exposure },
-    fogColor: { value: S.fog.color }, fogDensity: { value: S.fog.density },
+    fogColor: { value: S.fog.color }, fogDensity: { value: (S.fog as THREE.FogExp2).density },
   };
   bakedUniforms.push(u);
   return new THREE.ShaderMaterial({
@@ -65,7 +71,7 @@ function bakedMat(albedo, lmOn, lmOff, exposure = 1) {
 }
 
 /* ---------------- world ---------------- */
-const world = { neonMats: [], ready: false };
+const world: any = { neonMats: [], ready: false };
 const gl = new GLTFLoader(manager);
 // a dim office reflection map so enamel and chrome have something to reflect
 const officeEnv = (() => {
@@ -79,7 +85,7 @@ const officeEnv = (() => {
 const glm = new GLTFLoader(manager); glm.setMeshoptDecoder(MeshoptDecoder);
 glm.load(A + 'props/typewriter.glb', (g) => {
   const tuned = new Set();
-  g.scene.traverse((o) => {
+  g.scene.traverse((o: any) => {
     if (!o.isMesh) return; o.castShadow = true; o.receiveShadow = true; const m = o.material; if (tuned.has(m)) return; tuned.add(m);
     m.envMap = officeEnv; m.envMapIntensity = .5;
     // live lights here are tuned for the baked room; tone the metals and paper down so they don't bloom
@@ -97,11 +103,11 @@ gl.load(A + 'office.glb', (g) => {
     room: [tex('room_albedo.jpg', true), tex('room_on.png'), tex('room_off.png')],
     props: [tex('props_albedo.jpg', true), tex('props_on.png'), tex('props_off.png')],
   };
-  g.scene.traverse((o) => {
+  g.scene.traverse((o: any) => {
     if (!o.isMesh) return;
     const key = Object.keys(T).find((k) => o.name.startsWith(k) || o.parent?.name?.startsWith(k));
     if (key) {
-      o.material = bakedMat(...T[key], key === 'ext' ? 1.3 : 1.35);
+      o.material = bakedMat(T[key][0], T[key][1], T[key][2], key === 'ext' ? 1.3 : 1.35);
       if (key !== 'ext') {
         const sc = new THREE.Mesh(o.geometry, new THREE.ShadowMaterial({ opacity: .55, color: 0x05060c, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 }));
         sc.position.copy(o.position); sc.quaternion.copy(o.quaternion); sc.scale.copy(o.scale); sc.receiveShadow = true;
@@ -230,7 +236,7 @@ let ac, master, rainG, muted = false;
 function audio() {
   if (ac) return;
   try {
-    ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.connect(ac.destination);
+    ac = new (window.AudioContext || (window as any).webkitAudioContext)(); master = ac.createGain(); master.connect(ac.destination);
     const n = ac.createBuffer(1, ac.sampleRate * 3, ac.sampleRate), d = n.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     const src = ac.createBufferSource(); src.buffer = n; src.loop = true;
@@ -310,7 +316,7 @@ $('play').onclick = () => { audio(); rain.showBriefing(() => enter('play')); };
 $('replay').onclick = () => {
   play.stop(); chapters.reset(); gsap.killTweensOf(shot);
   clearInterval(typer); gsap.killTweensOf(shot); Object.assign(shot, START);
-  lamp.v = 0; headDown = 1; S.fog.density = .055; state = 'street';
+  lamp.v = 0; headDown = 1; (S.fog as THREE.FogExp2).density = .055; state = 'street';
   gsap.set('#note', { opacity: 0, y: 16 }); gsap.set('#stamp', { opacity: 0, scale: 2 }); gsap.set(['#hint', '#tools'], { opacity: 0 });
   $('street').style.pointerEvents = 'auto'; gsap.to('#street', { opacity: 1, duration: .6 });
 };
@@ -322,7 +328,7 @@ let play;
 const eggs = initEggs({ THREE, S, cam, lamp, gsap, det, chapters, sfx: { tick, thud }, setHead: (h) => gsap.to({ h: headDown }, { h, duration: .8, onUpdate() { headDown = this.targets()[0].h; } }), getState: () => (play?.active ? 'game' : state), steam: (ms) => chapters.steam(ms) });
 const ev = buildEvidence(THREE, S, manager);
 function deskView() {
-  state = 'office'; lamp.v = 1; S.fog.density = .02; det.root.visible = false; $('street').style.display = 'none';
+  state = 'office'; lamp.v = 1; (S.fog as THREE.FogExp2).density = .02; det.root.visible = false; $('street').style.display = 'none';
   Object.assign(shot, { px: -.32, py: 1.5, pz: -3.62, lx: -.3, ly: .82, lz: -4.62 });
 }
 const rain = initRain({ sfx: { tick, thud, paper }, ac: () => ac, snapshot: () => { comp.render(); return R.domElement.toDataURL('image/jpeg', .85); } });
@@ -333,7 +339,7 @@ if (new URLSearchParams(location.search).get('preview') === 'rain') {
   bar.innerHTML = '<button data-a="b">BRIEFING</button><button data-a="d">DESK</button><button data-a="p">PHONE</button><button data-a="v">VAULT</button>';
   ev.show(true);
   document.body.appendChild(bar);
-  bar.onclick = (e) => { const a = e.target.dataset.a; audio(); if (a === 'b') rain.showBriefing(() => enter('tour')); if (a === 'p') rain.openPhone(); if (a === 'd') deskView(); if (a === 'v') rain.openVault(); };
+  bar.onclick = (e) => { const a = (e.target as HTMLElement).dataset.a; audio(); if (a === 'b') rain.showBriefing(() => enter('tour')); if (a === 'p') rain.openPhone(); if (a === 'd') deskView(); if (a === 'v') rain.openVault(); };
 }
 { const d = new Date(); $('clock').textContent = d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', timeZone: 'Asia/Kolkata' }).toUpperCase(); }
 
@@ -368,7 +374,7 @@ function loop() {
   const dpa = dg.attributes.position.array;
   for (let i = 0; i < DN; i++) { dpa[i * 3] += Math.sin(t * .3 + i) * .0005; dpa[i * 3 + 1] += Math.cos(t * .21 + i * 1.7) * .0004; }
   dg.attributes.position.needsUpdate = true;
-  for (const u of bakedUniforms) { u.k.value = lamp.v; u.fogDensity.value = S.fog.density; }
+  for (const u of bakedUniforms) { u.k.value = lamp.v; u.fogDensity.value = (S.fog as THREE.FogExp2).density; }
   if (world.doorGlass) world.doorGlass.emissiveIntensity = .25 + lamp.v * .6;
   lampL.intensity = lamp.v * 9; lampFill.intensity = lamp.v * 1.4;
   bulb.material.color.setRGB(lamp.v * 6, lamp.v * 3.6, lamp.v * 1.6);
@@ -386,4 +392,6 @@ function loop() {
   comp.render(); requestAnimationFrame(loop);
 }
 loop();
-window.__case = { rain, ev, deskView, shot, lamp, S, cam, det, POSE, chapters, play, enter, setState: (s) => { state = s; }, head: (h) => { headDown = h; } };
+(window as any).__case = { rain, ev, deskView, shot, lamp, S, cam, det, POSE, chapters, play, enter, setState: (s) => { state = s; }, head: (h) => { headDown = h; } };
+
+}
