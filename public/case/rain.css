@@ -1,0 +1,66 @@
+/* ---------- shared ---------- */
+.rg-layer{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(5,7,13,.55),rgba(2,3,6,.88))}
+.rg-layer.on{display:flex}
+.rg-paper{--n:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .27  0 0 0 0 .16  0 0 0 .22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+
+/* ---------- briefing dossier ---------- */
+.rg-folder{position:relative;width:min(860px,94vw);max-height:94vh;display:grid;grid-template-columns:1fr 1.15fr;gap:0;transform:rotate(-.8deg);filter:drop-shadow(0 40px 60px rgba(0,0,0,.65))}
+.rg-folder:before{content:"";position:absolute;inset:-14px -14px -14px -14px;background:#b8925a var(--n);border-radius:4px 10px 6px 4px;box-shadow:inset 0 0 60px rgba(70,40,10,.45);z-index:-1}
+.rg-folder .tab{position:absolute;top:-38px;right:60px;background:#b8925a var(--n);padding:8px 22px 14px;border-radius:8px 8px 0 0;font:13px 'Special Elite',monospace;letter-spacing:2px;color:#3a2611}
+.rg-left{position:relative;background:#e9dfc8 var(--n);padding:34px 28px;box-shadow:inset -8px 0 18px rgba(0,0,0,.12)}
+.rg-right{position:relative;background:#f3ecdc var(--n);padding:30px 34px 28px;color:#1d1813;font:15px/1.65 'Special Elite',monospace;overflow:auto;max-height:86vh}
+.rg-right:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(transparent 0 25px,rgba(60,90,140,.07) 25px 26px);pointer-events:none}
+.rg-polaroid{background:#f7f4ee;padding:12px 12px 46px;width:88%;margin:18px auto 0;transform:rotate(-4deg);box-shadow:0 10px 24px rgba(0,0,0,.35);position:relative}
+.rg-polaroid img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;filter:sepia(.25) contrast(1.05) saturate(.85)}
+.rg-polaroid .cap{position:absolute;left:0;right:0;bottom:10px;text-align:center;font:22px 'Caveat',cursive;color:#2b3a67}
+.rg-clip{position:absolute;top:-22px;left:46px;width:26px;height:74px;border:4px solid #9aa0a6;border-radius:14px;border-bottom-color:transparent;transform:rotate(8deg);box-shadow:1px 1px 2px rgba(0,0,0,.4)}
+.rg-ring{position:absolute;right:26px;bottom:70px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,transparent 54%,rgba(120,70,30,.28) 57%,rgba(120,70,30,.12) 61%,transparent 64%);transform:rotate(20deg)}
+.rg-note{font:21px/1.25 'Caveat',cursive;color:#2b3a67;margin:22px 8px 0;transform:rotate(-2deg)}
+.rg-right h1{font:600 30px/1.1 'Playfair Display',serif;margin:6px 0 4px;letter-spacing:.3px}
+.rg-meta{font-size:12px;letter-spacing:2px;color:#6b5a44;display:flex;justify-content:space-between;border-bottom:1px solid rgba(29,24,19,.5);padding-bottom:8px;margin-bottom:14px}
+.rg-right p{margin:0 0 12px}.rg-right b{background:linear-gradient(transparent 55%,rgba(242,165,65,.45) 55%)}
+.rg-how{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0 18px;border-top:1px dashed rgba(29,24,19,.4);padding-top:14px}
+.rg-how div{text-align:center;font-size:11.5px;line-height:1.35;color:#3a3025}.rg-how i{display:block;font-style:normal;font-size:20px;margin-bottom:4px}
+.rg-stamp{position:absolute;bottom:104px;right:20px;border:4px double #a3231d;color:#a3231d;font:700 18px 'Special Elite';letter-spacing:3px;padding:4px 10px;transform:rotate(9deg);opacity:.82;mix-blend-mode:multiply;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='60'><filter id='r'><feTurbulence baseFrequency='.9' numOctaves='2'/><feComponentTransfer><feFuncA type='discrete' tableValues='1 1 1 0 1 1'/></feComponentTransfer></filter><rect width='100%' height='100%' filter='url(%23r)'/></svg>")}
+.rg-take{display:block;margin:6px auto 0;font:15px 'Special Elite',monospace;letter-spacing:4px;background:#1d1813;color:#f3ecdc;border:0;padding:14px 30px;cursor:pointer;position:relative;z-index:1;transition:transform .2s,background .2s}
+.rg-take:hover{background:#a3231d;transform:translateY(-2px)}
+.rg-sub{text-align:center;font-size:12px;color:#6b5a44;margin-top:8px;position:relative;z-index:1}
+@media (max-width:760px){.rg-folder{grid-template-columns:1fr}.rg-left{display:none}.rg-how{grid-template-columns:repeat(3,1fr)}}
+
+/* ---------- rotary phone ---------- */
+.rg-phone{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px}
+.rg-strip{background:#f3ecdc var(--n);color:#1d1813;font:26px 'Special Elite',monospace;letter-spacing:6px;padding:10px 24px;min-width:340px;text-align:center;box-shadow:0 12px 30px rgba(0,0,0,.5);transform:rotate(-1deg)}
+.rg-strip small{display:block;font-size:11px;letter-spacing:2px;color:#6b5a44}
+.rg-dial{width:min(420px,86vw);height:min(420px,86vw);touch-action:none;user-select:none;filter:drop-shadow(0 30px 40px rgba(0,0,0,.6))}
+.rg-dial .wheel{cursor:grab;transform-origin:210px 210px}
+.rg-dial .hole{cursor:pointer}
+.rg-dial .hole:hover circle{fill:rgba(242,165,65,.18)}
+.rg-said{min-height:64px;max-width:560px;text-align:center;font:17px/1.55 'Special Elite',monospace;color:#efe6d2}
+.rg-said em{color:#f2a541;font-style:normal}
+.rg-btns{display:flex;gap:10px}
+.rg-btns button{font:12px 'Special Elite',monospace;letter-spacing:2px;color:#efe6d2;background:rgba(239,230,210,.06);border:1px solid #5d6580;padding:9px 14px;cursor:pointer}
+.rg-btns button:hover{background:#efe6d2;color:#1d1813}
+
+/* ---------- vault keypad ---------- */
+.rg-vault{width:min(330px,88vw);padding:26px 24px 30px;border-radius:10px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px),linear-gradient(160deg,#8d9297,#5d6267 45%,#7b8085);
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.35),inset 0 -3px 6px rgba(0,0,0,.4),0 30px 60px rgba(0,0,0,.7);position:relative}
+.rg-vault:before,.rg-vault:after{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#d8dcdf,#6b7075);box-shadow:0 1px 1px rgba(0,0,0,.6);top:10px;left:10px}
+.rg-vault:after{left:auto;right:10px}
+.rg-brand{text-align:center;font:700 12px 'Special Elite';letter-spacing:4px;color:#2a2d30;text-shadow:0 1px 0 rgba(255,255,255,.35);margin-bottom:12px}
+.rg-lcd{background:#0f1a10;border-radius:4px;box-shadow:inset 0 3px 8px rgba(0,0,0,.8);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.rg-lcd span{font:28px 'Share Tech Mono',monospace;letter-spacing:10px;color:#5dff8f;text-shadow:0 0 8px rgba(93,255,143,.6)}
+.rg-led{width:12px;height:12px;border-radius:50%;background:#5a1010;box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+.rg-led.red{background:#ff3b30;box-shadow:0 0 10px #ff3b30}.rg-led.green{background:#3bff6a;box-shadow:0 0 12px #3bff6a}
+.rg-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.rg-keys button{height:56px;border-radius:8px;border:0;cursor:pointer;font:22px 'Share Tech Mono',monospace;color:#1f2225;
+  background:linear-gradient(180deg,#e8eaec,#b7bbbf);box-shadow:0 4px 0 #6e7378,0 6px 10px rgba(0,0,0,.45),inset 0 1px 0 #fff;transition:transform .06s,box-shadow .06s}
+.rg-keys button:active,.rg-keys button.down{transform:translateY(3px);box-shadow:0 1px 0 #6e7378,0 2px 4px rgba(0,0,0,.4),inset 0 1px 0 #fff}
+.rg-keys .fn{font-size:13px;letter-spacing:1px}
+.rg-vhint{margin-top:16px;text-align:center;font:12px 'Special Elite';color:#22262a;letter-spacing:1px;min-height:16px}
+.rg-shake{animation:rgshake .35s}
+@keyframes rgshake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+
+/* preview strip */
+#rg-dev{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:60;display:flex;gap:8px}
+#rg-dev button{font:11px 'Special Elite';letter-spacing:2px;background:#efe6d2;color:#1d1813;border:0;padding:7px 10px;cursor:pointer}
