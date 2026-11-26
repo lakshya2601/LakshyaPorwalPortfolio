@@ -7,7 +7,7 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { loadDetective, POSE } from './detective.js';
 import { initChapters } from './chapters.js';
 import { initEggs } from './eggs.js';
-import { initPlay } from './play.js';
+import { initGame } from './game.js';
 import { initRain } from './rain.js';
 import { buildEvidence } from './evidence.js';
 
@@ -262,7 +262,7 @@ function flickOn() {
 let mode = 'tour';
 function enter(md = 'tour') {
   mode = md;
-  if (state !== 'street') return; state = 'moving'; audio();
+  if (state !== 'street') return; if (md === 'play') det.root.visible = false; state = 'moving'; audio();
   gsap.to('#street', { opacity: 0, duration: .5, onComplete: () => { $('street').style.pointerEvents = 'none'; } });
   gsap.timeline()
     .to(shot, { px: 0, py: 1.5, pz: 2.4, lx: 0, ly: 1.4, lz: -2, duration: 2.6, ease: 'power2.inOut' })
@@ -274,14 +274,14 @@ function enter(md = 'tour') {
     .add(() => { tick(700, .07, .35); flickOn(); }, '+=.6')
     .add(() => {
       gsap.to('#tools', { opacity: 1, duration: .8, delay: 1.2 });
-      if (mode === 'play') { play.start(); return; }
+      if (mode === 'play') { gsap.to(shot, { px: -.2, py: 1.6, pz: -3.5, lx: -.2, ly: .84, lz: -4.58, duration: 2.2, ease: 'power2.inOut', onComplete: () => { det.root.visible = false; play.start(); } }); return; }
       gsap.to('#note', { opacity: 1, y: 0, duration: .9, ease: 'power3.out' });
       gsap.to('#hint', { opacity: 1, duration: .8, delay: 1.2 });
       typeIt();
     }, '+=1.1');
 }
 $('enter').onclick = () => enter('tour');
-$('play').onclick = () => enter('play');
+$('play').onclick = () => { audio(); rain.showBriefing(() => enter('play')); };
 $('replay').onclick = () => {
   play.stop(); chapters.reset(); gsap.killTweensOf(shot);
   clearInterval(typer); gsap.killTweensOf(shot); Object.assign(shot, START);
@@ -292,15 +292,17 @@ $('replay').onclick = () => {
 $('mute').onclick = () => { muted = !muted; if (master) master.gain.value = muted ? 0 : 1; $('mute').textContent = muted ? 'SOUND OFF' : 'SOUND ON'; };
 gsap.set('#note', { y: 16 });
 const chapters = initChapters({ THREE, S, cam, shot, gsap, R, sfx: { tick, thud, paper, slide } });
-const play = initPlay({ THREE, S, cam, gsap, chapters, sfx: { tick, thud, ring, door, step, slide },
-  toTour: (hire) => { Object.assign(shot, { px: .1, py: 1.5, pz: -2.2, lx: 0, ly: 1.22, lz: -5.3 }); chapters.start(); if (hire) setTimeout(() => chapters.go(chapters.count() - 1), 300); else { gsap.to('#note', { opacity: 1, y: 0, duration: .8 }); typeIt(); } } });
-const eggs = initEggs({ THREE, S, cam, lamp, gsap, det, chapters, sfx: { tick, thud }, setHead: (h) => gsap.to({ h: headDown }, { h, duration: .8, onUpdate() { headDown = this.targets()[0].h; } }), getState: () => state, steam: (ms) => chapters.steam(ms) });
+const toTour = () => { play.stop(); det.root.visible = true; Object.assign(shot, { px: .1, py: 1.5, pz: -2.2, lx: 0, ly: 1.22, lz: -5.3 }); ev.show(false); chapters.start(); gsap.to('#note', { opacity: 1, y: 0, duration: .8 }); typeIt(); };
+let play;
+const eggs = initEggs({ THREE, S, cam, lamp, gsap, det, chapters, sfx: { tick, thud }, setHead: (h) => gsap.to({ h: headDown }, { h, duration: .8, onUpdate() { headDown = this.targets()[0].h; } }), getState: () => (play?.active ? 'game' : state), steam: (ms) => chapters.steam(ms) });
 const ev = buildEvidence(THREE, S, manager);
 function deskView() {
   state = 'office'; lamp.v = 1; S.fog.density = .02; det.root.visible = false; $('street').style.display = 'none';
   Object.assign(shot, { px: -.32, py: 1.5, pz: -3.62, lx: -.3, ly: .82, lz: -4.62 });
 }
 const rain = initRain({ sfx: { tick, thud, paper }, ac: () => ac, snapshot: () => { comp.render(); return R.domElement.toDataURL('image/jpeg', .85); } });
+play = initGame({ THREE, S, cam, gsap, sfx: { tick, thud, paper }, ac: () => ac, master: () => master, ev, rain, lamp, toTour,
+  again: () => { play.start(); }, dawn: () => { gsap.to(S.fog.color, { r: .32, g: .26, b: .3, duration: 3 }); } });
 if (new URLSearchParams(location.search).get('preview') === 'rain') {
   const bar = document.createElement('div'); bar.id = 'rg-dev';
   bar.innerHTML = '<button data-a="b">BRIEFING</button><button data-a="d">DESK</button><button data-a="p">PHONE</button><button data-a="v">VAULT</button>';
