@@ -64,3 +64,8 @@
 /* preview strip */
 #rg-dev{position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:60;display:flex;gap:8px}
 #rg-dev button{font:11px 'Special Elite';letter-spacing:2px;background:#efe6d2;color:#1d1813;border:0;padding:7px 10px;cursor:pointer}
+
+.rg-dial2{position:relative;width:min(440px,84vw);aspect-ratio:1;border-radius:50%;cursor:pointer;touch-action:none;user-select:none;
+  background:radial-gradient(circle at 38% 30%,#3b3b3d 0,#141416 45%,#050506 72%);box-shadow:0 30px 60px rgba(0,0,0,.7),inset 0 3px 6px rgba(255,255,255,.12),inset 0 -8px 20px rgba(0,0,0,.9)}
+.rg-dial2 img{position:absolute;left:5.4%;top:5.4%;width:89.2%;height:89.2%;pointer-events:none;-webkit-user-drag:none}
+.rg-dial2 .wheel{will-change:transform}
