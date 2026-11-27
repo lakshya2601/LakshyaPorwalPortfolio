@@ -29,6 +29,8 @@ export function buildEvidence(THREE, S, manager) {
   sheet('ticket', 'ticket.jpg', .045, .096, -.6, -4.32, .5, .005, .003);
   sheet('receipt', 'receipt.jpg', .06, .126, -.33, -4.18, .25, .003, .009);
   sheet('pressid', 'pressid.jpg', .086, .055, -.7, -4.5, -.15, .007, .0005, { rough: .25 });
+  // Act II: Pappu's envelope, pushed under the door (hidden until then)
+  sheet('envelope', 'envelope.jpg', .17, .117, .045, -4.13, -.32, .009, .003, { rough: .85 }).visible = false;
   // jeeravan packet: a soft pillow
   const pk = new THREE.BoxGeometry(.1, .145, .016, 8, 8, 2); const pp = pk.attributes.position;
   for (let i = 0; i < pp.count; i++) { const x = pp.getX(i) / .05, y = pp.getY(i) / .0725, z = pp.getZ(i); pp.setZ(i, z * (1 - .55 * (x * x) ) * (1 - .4 * y * y)); }
