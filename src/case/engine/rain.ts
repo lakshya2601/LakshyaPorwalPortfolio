@@ -72,7 +72,7 @@ export function initRain({ sfx, ac, snapshot }) {
     if (bd < 14) { e.preventDefault(); dial(best); }
   });
   const wheel = phone.querySelector<any>('.wheel'), numEl = phone.querySelector<any>('.num'), said = phone.querySelector<any>('.rg-said');
-  let dialed = '', spinning = false, onCall = null, opts = null, callLock = false; const queue = [];
+  let dialed = '', spinning = false, onCall = null, routes = null, onHang = null, callLock = false; const queue = [];
   const WRONG = [
     'A sleepy voice: "Hello? This is Sarafa Sweets. We are closed, bhaiya. Try at 9."',
     'An auntie: "Arre, wrong number. And why are you calling at 3 in the morning?"',
@@ -90,17 +90,17 @@ export function initRain({ sfx, ac, snapshot }) {
       const ticks = k; let t = 0;
       gsap.to(wheel, { rotation: 0, duration: travel / 300, ease: 'none', onUpdate() { const nt = Math.floor((1 - this.progress()) * -ticks + ticks); if (nt > t) { t = nt; clickSound(); } } , onComplete: () => {
         spinning = false; dialed += String(k % 10); numEl.textContent = dialed.replace(/(\d{4})(\d{0,2})(\d{0,2})(\d{0,2})/, (m, a, b, c, d) => [a, b, c, d].filter(Boolean).join(' '));
-        if (dialed.length === 10) { queue.length = 0; connect(); } else if (queue.length) dial(queue.shift());
+        if (dialed.length === 10 || (routes?.[dialed] && dialed.length < 5)) { queue.length = 0; connect(); } else if (queue.length) dial(queue.shift());
       } });
     } });
   }
   function connect() {
     callLock = true; said.innerHTML = '<em>ringing…</em>';
     ringTone(2, () => {
+      const r = routes?.[dialed];
       let line, who;
-      if (opts && dialed === opts.number) { who = opts.who; line = opts.right; }
+      if (r) { who = r.who; line = r.text || ''; }
       else if (/^1987\d{0,4}60$/.test(dialed) && dialed.length < 10) { who = 'short'; line = '<em>A recorded voice:</em> "The number you have dialled does not exist." Too few digits. Something is missing from the middle.'; }
-      else if (dialed === CASE.press) { who = 'press'; line = `<em>The night desk, Indore Evening Post:</em> "Rakesh? He filed nothing tonight. If you find him, tell him the editor is worried."`; }
       else { who = 'wrong'; line = WRONG[Math.floor(Math.random() * WRONG.length)]; }
       said.innerHTML = line; sfx.tick(900, .04, .1);
       onCall?.(who, dialed);
@@ -109,10 +109,11 @@ export function initRain({ sfx, ac, snapshot }) {
   }
   function resetDial() { dialed = ''; queue.length = 0; numEl.textContent = '—'; }
   addEventListener('keydown', (e) => { if (phone.classList.contains('on') && /^[0-9]$/.test(e.key)) dial(e.key === '0' ? 10 : +e.key); });
-  phone.querySelector<any>('.hang').onclick = () => { if (spinning) return; sfx.tick(200, .1, .2, 'triangle'); resetDial(); said.textContent = ''; callLock = false; };
-  phone.querySelector<any>('.close').onclick = () => { phone.classList.remove('on'); resetDial(); said.textContent = ''; };
+  phone.querySelector<any>('.hang').onclick = () => { if (spinning) return; sfx.tick(200, .1, .2, 'triangle'); onHang?.(); resetDial(); said.textContent = ''; callLock = false; };
+  phone.querySelector<any>('.close').onclick = () => { onHang?.(); phone.classList.remove('on'); resetDial(); said.textContent = ''; onClose?.(); };
+  let onClose = null;
   function openPhone(cb?, o?) {
-    onCall = cb; opts = o || null; resetDial(); said.innerHTML = 'Click a number on the dial (or type it). The dial turns and clicks back, like the real thing.';
+    onCall = cb; routes = o?.routes || null; onHang = o?.onHang || null; onClose = o?.onClose || null; callLock = false; resetDial(); said.innerHTML = 'Click a number on the dial (or type it). The dial turns and clicks back, like the real thing.';
     phone.classList.add('on'); sfx.tick(260, .12, .25, 'triangle');
     gsap.fromTo(phone.querySelector<any>('.rg-dial2'), { scale: .85, opacity: 0 }, { scale: 1, opacity: 1, duration: .6, ease: 'back.out(1.6)' });
   }
@@ -159,5 +160,5 @@ export function initRain({ sfx, ac, snapshot }) {
     gsap.fromTo(vault.querySelector<any>('.rg-vault'), { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: .6, ease: 'power3.out' });
   }
 
-  return { showBriefing, openPhone, openVault, CASE };
+  return { showBriefing, openPhone, openVault, CASE, setSaid: (h) => { said.innerHTML = h; }, closePhone: () => phone.querySelector<any>('.close').onclick() };
 }
